@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+    db:
+        #for postgres DB
+        image: "postgres:15"
+        container_name: postgres_db
+        ports:
+            - "5432:5432"
+        environment:
+            - POSTGRES_USER=user
+            - POSTGRES_PASSWORD=password
+            - POSTGRES_DB=postgres_db
+        volumes:
+            - PGDATA:/var/lib/postgres/data # to persist the data if a container is restarting
+
+    api:
+        #for fast API
+        container_name: fast_api
+        build: backend
+        ports:
+            - "8000:8000"
+        depends_on:
+            - db
+
+volumes:
+    PGDATA:

@@ -7,10 +7,6 @@ services:
             - "5432:5432"
         env_file:
             - .env
-        environment:
-            - POSTGRES_USER=${POSTGRES_USER}
-            - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-            - POSTGRES_DB=${POSTGRES_DB}
         volumes:
             - PGDATA:/var/lib/postgres/data # to persist the data if a container is restarting
 

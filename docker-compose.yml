@@ -26,6 +26,8 @@ services:
             - db
         env_file:
             - .env
+        volumes:
+            - ./backend:/app
 
 volumes:
     PGDATA:

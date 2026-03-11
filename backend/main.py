@@ -1,3 +1,4 @@
+from sys import prefix
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db.database import engine, Base
@@ -5,6 +6,7 @@ from api.cv import router as cv_router
 from db import models
 import os
 from dotenv import load_dotenv
+from api import auth
 
 load_dotenv()
 
@@ -19,6 +21,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 app.include_router(cv_router)
+app.include_router(auth.router, prefix="/auth",tags=["auth"])
 
 @app.get("/health")
 async def health_check():

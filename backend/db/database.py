@@ -14,10 +14,17 @@ Session = sessionmaker(bind=engine)
 
 session = Session()
 
+def get_db():
+    db = Session()   # opens the session
+    try:
+        yield db     # give the route, yeild is also the context manager here as it holds and hands control to our route
+    finally:
+        db.close()   #always close it in the end
+
 #this will serve as the parent class 
 class Base(DeclarativeBase):                                 
     metadata = MetaData(
-        naming_convention ={
+        naming_convention = {
             "ix": "ix_%(column_0_label)s",
             "uq": "uq_%(table_name)s_%(column_0_name)s",
             "ck": "ck_%(table_name)s_%(constraint_name)s",
@@ -25,6 +32,7 @@ class Base(DeclarativeBase):
             "pk": "pk_%(table_name)s"
         }
     )
+
 
 
     

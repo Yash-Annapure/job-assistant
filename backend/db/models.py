@@ -9,6 +9,7 @@ class User(Base):
     username = Column(String,unique = True, index = True)
     email = Column(String,unique = True, index = True)
     created_at = Column(DateTime, default = datetime.datetime.utcnow)
+    hashed_password = Column(String, nullable=False)
 
 class CV(Base):
     __tablename__ = "cv"

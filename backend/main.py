@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 from db.database import engine, Base
+from api.cv import router as cv_router
 from db import models
 import os
 from dotenv import load_dotenv
@@ -16,6 +17,8 @@ async def lifespan(app: FastAPI):
     yield
 
 app = FastAPI(lifespan=lifespan)
+
+app.include_router(cv_router)
 
 @app.get("/health")
 async def health_check():

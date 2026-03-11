@@ -11,4 +11,5 @@ dependencies = [
     "alembic>=1.12.1",
     "psycopg2-binary>=2.9.7",
     "python-dotenv>=1.2.2",
+    "asyncpg>=0.31.0",
 ]

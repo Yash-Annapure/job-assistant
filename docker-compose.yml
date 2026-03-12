@@ -10,7 +10,7 @@ services:
         volumes:
             - PGDATA:/var/lib/postgres/data # to persist the data if a container is restarting
         healthcheck:
-            test: [ "CMD-SHELL", "pg_isready - U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+            test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
             start_period: 10s
             interval: 5s
             timeout: 5s
@@ -23,7 +23,8 @@ services:
         ports:
             - "8000:8000"
         depends_on:
-            - db
+            db:
+                condition: service_healthy
         env_file:
             - .env
         volumes:

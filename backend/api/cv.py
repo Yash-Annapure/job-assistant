@@ -5,17 +5,18 @@ from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from db.database import get_db
+from auth_utils import get_current_user
 
+#user_id: int   no need for user_id as the get current user takes it automatically from the token
 class CV_input(BaseModel):
-    user_id: int
     raw_text: str
     file_path: str
 
 router = APIRouter()
 
-@router.post("/cv/upload")
-async def upload_cv(cv: CV_input, db = Depends(get_db)):
-    db_cv = models.CV(user_id = cv.user_id, raw_text = cv.raw_text, file_path = cv.file_path)
+@router.post("/upload")
+async def upload_cv(cv: CV_input, db = Depends(get_db), current_user= Depends(get_current_user)):
+    db_cv = models.CV(user_id = current_user.id, raw_text = cv.raw_text, file_path = cv.file_path)
     db.add(db_cv)
     db.commit()
     db.refresh(db_cv)

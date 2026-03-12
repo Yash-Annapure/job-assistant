@@ -29,6 +29,7 @@ services:
             - .env
         volumes:
             - ./backend:/app
+            - /app/.venv # to exclude the venv from restarting with every request and to keep it separate
 
 volumes:
     PGDATA:

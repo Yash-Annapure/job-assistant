@@ -17,4 +17,5 @@ COPY ./ /app/
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
-CMD [ "uv","run","uvicorn","main:app","--host","0.0.0.0","--port","8000","--reload" ]
+CMD [ "uv","run","uvicorn","main:app","--host","0.0.0.0","--port","8000","--reload","--reload-exclude", ".venv" ]
+#reload-exclude was added to keep it separate from restarting the server on every request

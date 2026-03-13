@@ -67,3 +67,7 @@ def user_login(auth:UserLogin, db = Depends(get_db)):
     token = create_access_token({"sub": existing_email.email})
     return {"access token":token,"token_type": "bearer"}
 
+
+
+
+

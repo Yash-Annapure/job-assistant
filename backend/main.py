@@ -8,6 +8,7 @@ import os
 from dotenv import load_dotenv
 from api import auth
 from api import jobs
+from api import applications
 
 load_dotenv()
 
@@ -24,6 +25,7 @@ app = FastAPI(lifespan=lifespan)
 app.include_router(cv_router, prefix="/cv", tags=["cv"])
 app.include_router(auth.router, prefix="/auth",tags=["auth"])
 app.include_router(jobs.router, prefix="/jobs",tags=["jobs"])
+app.include_router(applications.router, prefix="/applications",tags=["applications"])
 
 @app.get("/health")
 async def health_check():

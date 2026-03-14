@@ -25,3 +25,4 @@ __pycache__
 .env.test.example.local.example
 .env.staging.example.local.example
 project_notes.docx
+notebooks

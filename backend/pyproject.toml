@@ -18,13 +18,13 @@ dependencies = [
     "httpx>=0.28.1",
     "jupyter>=1.1.1",
     "ipykernel>=7.2.0",
-    "sentence-transformers>=5.3.0",
     "google-genai>=1.67.0",
     "spacy>=3.8.11", # NER — extract skills, companies, dates from CV
     "scikit-learn>=1.8.0", # TF-IDF, Logistic Regression, Isolation Forest
     "rank-bm25>=0.2.2", # BM25 ranking for better job matching
     "nltk>=3.9.3", #Text preprocessing, tokenization
     "en-core-web-sm",
+    "fastembed>=0.7.4",
 ]
 
 [tool.uv.sources]

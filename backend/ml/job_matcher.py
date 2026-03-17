@@ -1,13 +1,14 @@
-from sentence_transformers import SentenceTransformer
+from fastembed import TextEmbedding
+#sentence-transformers (previously had this but it was filling up the space a lot)
 from sklearn.metrics.pairwise import cosine_similarity
 from ml.llm_service import LLMService
-from cv_parser import parse_cv
+from ml.cv_parser import parse_cv
 import json
 
-model = SentenceTransformer('all-MiniLM-L6-v2')
+model = TextEmbedding("BAAI/bge-small-en-v1.5")
 async def match_cv_to_job(cv_text:str,job_description:str) -> dict:
     llm = LLMService()
-    embeddings = model.encode([cv_text,job_description])
+    embeddings = list(model.embed([cv_text, job_description]))
     cv_embedding = embeddings[0]
     job_embedding = embeddings[1]
     parsed_cv = await parse_cv(cv_text=cv_text)

@@ -3,3 +3,7 @@ __pycache__
 *.pyc
 *.pyo
 .env
+.uv-cache
+uv-cache
+hf-cache
+uv-cache

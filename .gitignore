@@ -25,3 +25,9 @@ __pycache__
 .env.staging.example.local.example
 project_notes.docx
 notebooks
+.uv-cache
+uv-cache
+E:\hf-cache
+E:\uv-cache
+hf-cache
+uv-cache

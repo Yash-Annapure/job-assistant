@@ -1,4 +1,4 @@
-from llm_service import LLMService
+from ml.llm_service import LLMService
 from fastapi import HTTPException
 import json
 

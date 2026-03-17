@@ -1,11 +1,13 @@
 # CV upload & parsing routes
 from db import models
-from fastapi import APIRouter
+from fastapi import APIRouter,HTTPException
 from fastapi import Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 from db.database import get_db
 from auth_utils import get_current_user
+from ml.cv_parser import parse_cv
+from db.models import CV
 
 #user_id: int   no need for user_id as the get current user takes it automatically from the token
 class CV_input(BaseModel):
@@ -23,6 +25,18 @@ async def upload_cv(cv: CV_input, db = Depends(get_db), current_user= Depends(ge
     return db_cv
     # pass
 
+@router.post("/analyze")
+async def analyze_cv(db = Depends(get_db), current_user = Depends(get_current_user)):
+    get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
+    if not get_cv:
+        raise HTTPException(404,"Item not found")
+    parsed_cv = await parse_cv(get_cv.raw_text)
+    return parsed_cv
+    
+    
+    
+    
+    
     '''
     Request comes in
         → FastAPI calls get_db()

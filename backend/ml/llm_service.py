@@ -1,4 +1,17 @@
+from google import genai 
+from dotenv import load_dotenv
+from dotenv import dotenv_values
+import os
+
+load_dotenv()
+
 class LLMService:
-    def __init__():                #configure gemini with API key
-        async def generator(prompt:str) -> str:       #send prompt, return response
-            pass
+    def __init__(self):
+        self.client = genai.Client(api_key=os.getenv("JOB_ASSISTANT_GEMINI_API_KEY"))
+    async def send_prompt(self,prompt:str) -> str:
+        response = self.client.models.generate_content(
+            model = "gemini-2.5-flash",
+            contents = prompt
+        )
+        return (response.text)
+    

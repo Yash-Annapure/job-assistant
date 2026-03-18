@@ -14,3 +14,7 @@ class LLMService:
         )
         return (response.text)
     
+    async def translate_to_english(self,text:str) -> str:
+        translated_text = await self.send_prompt(f"Detect the language, translate it into English, if it is not in English return only the translated text without any explaination. If the text is already in English, return it as is: {text}")
+        return translated_text
+

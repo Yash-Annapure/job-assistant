@@ -12,6 +12,7 @@ from db.models import Joblisting
 from db.models import CV
 from ml.interview_prep import generate_interview_questions
 from ml.cover_letter import generate_cover_letter
+from ml.llm_service import LLMService
 
 router = APIRouter()
 
@@ -38,6 +39,8 @@ class JobMatchInput(BaseModel):
 
 @router.post("/save")
 async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(get_current_user)):
+    llm = LLMService()
+    job.description = await llm.translate_to_english(job.description)
     db_jobs = Joblisting(title = job.title, company = job.company, description = job.description, url = job.url, source = "arbeitnow")
     db.add(db_jobs)
     db.commit()

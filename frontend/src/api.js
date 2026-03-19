@@ -85,3 +85,12 @@ export const createApplication = async (job_id,status,notes) => {
     })
     return response.json()
 }
+
+export const getMe = async () => {
+    const response = await fetch(`${API_URL}/users/me`,{
+        headers: {
+            "Authorization": `Bearer ${getToken()}`
+        }
+    })
+    return response.json()
+}

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from api import auth
 from api import jobs
 from api import applications
+from api import users
 from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
@@ -37,6 +38,7 @@ app.include_router(cv_router, prefix="/cv", tags=["cv"])
 app.include_router(auth.router, prefix="/auth",tags=["auth"])
 app.include_router(jobs.router, prefix="/jobs",tags=["jobs"])
 app.include_router(applications.router, prefix="/applications",tags=["applications"])
+app.include_router(users.router,prefix="/users",tags=["/users"])
 
 @app.get("/health")
 async def health_check():

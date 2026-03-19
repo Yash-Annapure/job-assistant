@@ -1,10 +1,13 @@
-import { useState } from 'react'
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import LoginForm from './components/LoginForm'
 
 function App() {
   return (
-    <div>
-      <h1>Job Assistant</h1>
-    </div>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginForm />} />
+      </Routes>
+    </BrowserRouter>
   )
 }
 

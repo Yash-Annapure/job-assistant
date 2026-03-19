@@ -50,7 +50,7 @@ def register_user(auth:UserRegistor, db = Depends(get_db)):
     db.refresh(db_user)
     
     token = create_access_token({"sub": db_user.email})
-    return {"access token":token,"token_type": "bearer"}
+    return {"access_token":token,"token_type": "bearer"}
 
 
 @router.post("/login")
@@ -65,7 +65,7 @@ def user_login(auth:UserLogin, db = Depends(get_db)):
     
     
     token = create_access_token({"sub": existing_email.email})
-    return {"access token":token,"token_type": "bearer"}
+    return {"access_token":token,"token_type": "bearer"}
 
 
 

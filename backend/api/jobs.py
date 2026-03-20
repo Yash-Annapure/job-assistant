@@ -17,11 +17,13 @@ from ml.llm_service import LLMService
 router = APIRouter()
 
 @router.get("/search")
-async def search_jobs(query: str,location : str = None):
+async def search_jobs(query: str, location: str = None):
     async with httpx.AsyncClient() as client:
-        params = {"q":query,"location":location}
+        params = {"q": query}
+        if location:
+            params["location"] = location
         try:
-            response = await client.get("https://www.arbeitnow.com/api/job-board-api",params=params)
+            response = await client.get("https://www.arbeitnow.com/api/job-board-api", params=params)
             data = response.json()
             return data["data"]
         except httpx.HTTPError:

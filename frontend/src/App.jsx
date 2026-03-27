@@ -5,11 +5,13 @@ import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import Applications from './pages/Applications'
+import Navbar from './components/Navbar'
 
 
 function App() {
   return (
     <BrowserRouter>
+      <Navbar />
       <Routes>
         <Route path="/login" element={<LoginForm />} />
         <Route path="/register" element={<RegisterForm />} />

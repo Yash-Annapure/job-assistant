@@ -26,7 +26,7 @@ function Jobs(){
 
     return (
     <div>
-        <p>💡 Tip: Include job type in your search e.g. "werkstudent python" or "junior data scientist"</p>
+        <p> Tip: Include job type in your search e.g. "werkstudent python" or "junior data scientist"</p>
         <input onChange={(e) => setQuery(e.target.value)} placeholder="e.g. werkstudent python"/>
         <input onChange={(e) => setLocation(e.target.value)} placeholder="Location e.g. Berlin"/>
         <button onClick={handleSearch}>Search</button>

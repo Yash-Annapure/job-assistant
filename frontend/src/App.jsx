@@ -4,7 +4,7 @@ import RegisterForm from './components/RegisterForm'
 import ProtectedRoute from './components/ProtectedRoute'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
-
+import Applications from './pages/Applications'
 
 
 function App() {
@@ -21,6 +21,11 @@ function App() {
         <Route path="/jobs" element={
           <ProtectedRoute>
             <Jobs />
+          </ProtectedRoute>
+        } />
+        <Route path="/applications" element={
+          <ProtectedRoute>
+            <Applications />
           </ProtectedRoute>
         } />
       </Routes>

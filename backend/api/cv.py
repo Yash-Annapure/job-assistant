@@ -32,6 +32,15 @@ async def analyze_cv(db = Depends(get_db), current_user = Depends(get_current_us
         raise HTTPException(404,"Item not found")
     parsed_cv = await parse_cv(get_cv.raw_text)
     return parsed_cv
+
+@router.delete("/delete")
+async def delete_cv(db = Depends(get_db), current_user = Depends(get_current_user)):
+    db_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
+    if not db_cv:
+        raise HTTPException(404, "No CV found")
+    db.delete(db_cv)
+    db.commit()
+    return {"message": "CV deleted successfully"}
     
     
     

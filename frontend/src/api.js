@@ -2,13 +2,22 @@ const API_URL = "http://localhost:8000"
 
 const getToken = () => localStorage.getItem("token")
 
+const handleResponse = async (response) => {
+    if (response.status === 401) {
+        localStorage.removeItem("token")
+        window.location.href = "/login"
+        return null
+    }
+    return response.json()
+}
+
 export const loginUser = async (email, password) => {
     const response = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const registerUser = async (username, email, password) => {
@@ -17,7 +26,7 @@ export const registerUser = async (username, email, password) => {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({username,email,password})
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const searchJob = async (query,location) =>{
@@ -25,7 +34,7 @@ export const searchJob = async (query,location) =>{
         method : "GET",
         headers : {"Content-Type": "application/json"},
         })
-    return response.json()
+    return handleResponse(response)
 }
 export const uploadCV = async (raw_text,file_path) => {
     const response = await fetch(`${API_URL}/cv/upload`,{
@@ -36,7 +45,7 @@ export const uploadCV = async (raw_text,file_path) => {
         },
         body : JSON.stringify({raw_text,file_path})
         })
-        return response.json()
+        return handleResponse(response)
 }
 
 export const matchCV = async (job_description) => {
@@ -48,7 +57,7 @@ export const matchCV = async (job_description) => {
         },
         body : JSON.stringify({job_description})
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const generateCoverLetter = async (job_description) => {
@@ -60,7 +69,7 @@ export const generateCoverLetter = async (job_description) => {
         },
         body : JSON.stringify({job_description})
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const getApplications = async () => {
@@ -71,7 +80,7 @@ export const getApplications = async () => {
             "Authorization": `Bearer ${getToken()}`
         }
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const createApplication = async (job_id,status,notes) => {
@@ -83,7 +92,7 @@ export const createApplication = async (job_id,status,notes) => {
         },
         body : JSON.stringify({job_id,status,notes})
     })
-    return response.json()
+    return handleResponse(response)
 }
 
 export const getMe = async () => {
@@ -92,5 +101,14 @@ export const getMe = async () => {
             "Authorization": `Bearer ${getToken()}`
         }
     })
-    return response.json()
+    return handleResponse(response)
 }
+
+export const deleteCV = async () => {
+    const response = await fetch(`${API_URL}/cv/delete`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+    return handleResponse(response)
+}
+

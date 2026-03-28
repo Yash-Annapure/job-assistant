@@ -22,6 +22,7 @@ function RegisterForm(){
         if (data["access_token"]) {
             localStorage.setItem("token",data.access_token)
             isRegistered(true)
+            window.location.href = "/dashboard"
         }
     }
     return (

@@ -25,6 +25,7 @@ dependencies = [
     "nltk>=3.9.3", #Text preprocessing, tokenization
     "en-core-web-sm",
     "fastembed>=0.7.4",
+    "python-multipart>=0.0.22",
 ]
 
 [tool.uv.sources]

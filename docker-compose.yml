@@ -8,7 +8,7 @@ services:
         env_file:
             - .env
         volumes:
-            - PGDATA:/var/lib/postgres/data # to persist the data if a container is restarting
+            - PGDATA:/var/lib/postgresql/data # to persist the data if a container is restarting
         healthcheck:
             test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
             start_period: 10s

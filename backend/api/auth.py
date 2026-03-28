@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordRequestForm
 from pydantic import BaseModel, EmailStr, field_validator
 from auth_utils import hash_password,verify_password,create_access_token
 from db.models import User
@@ -54,18 +55,14 @@ def register_user(auth:UserRegistor, db = Depends(get_db)):
 
 
 @router.post("/login")
-def user_login(auth:UserLogin, db = Depends(get_db)):
-    #first step find the user in the database
+def user_login(auth: UserLogin, db = Depends(get_db)):
     existing_email = db.query(User).filter(User.email == auth.email).first()
     if not existing_email:
-        raise HTTPException(401,"Invalid Credentials")
-    
+        raise HTTPException(401, "Invalid Credentials")
     if not verify_password(auth.password, existing_email.hashed_password):
-        raise HTTPException(401,"Invalid Credentials")
-    
-    
+        raise HTTPException(401, "Invalid Credentials")
     token = create_access_token({"sub": existing_email.email})
-    return {"access_token":token,"token_type": "bearer"}
+    return {"access_token": token, "token_type": "bearer"}
 
 
 

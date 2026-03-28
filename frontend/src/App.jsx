@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import Applications from './pages/Applications'
 import Navbar from './components/Navbar'
+import Landing from './pages/Landing'
 
 
 function App() {
@@ -30,6 +31,7 @@ function App() {
             <Applications />
           </ProtectedRoute>
         } />
+        <Route path="/" element={<Landing />} />
       </Routes>
     </BrowserRouter>
   )

@@ -152,3 +152,23 @@ export const updateApplication = async (id, status, notes) => {
     })
     return handleResponse(response)
 }
+
+export const getInterviewPrep = async (job_description) => {
+    const response = await fetch(`${API_URL}/jobs/interview-prep`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ job_description })
+    })
+    return handleResponse(response)
+}
+
+export const deleteApplication = async (id) => {
+    const response = await fetch(`${API_URL}/applications/${id}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+    return handleResponse(response)
+}

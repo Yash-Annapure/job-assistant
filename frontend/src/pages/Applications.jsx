@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react"
-import { getApplications, updateApplication } from "../api"
+import { getApplications, updateApplication, deleteApplication } from "../api"
 
 const statusColors = {
     applied: { bg: "#2a2000", border: "#facc15", color: "#facc15" },
@@ -36,6 +36,13 @@ function Applications() {
         setOpenDropdown(null)
     }
 
+    const handleDeleteApplication = async (id) => {
+        const data = await deleteApplication(id)
+        if (data) {
+            setApplications(prev => prev.filter(app => app.id !== id))
+        }
+    }
+
     return (
         <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 24px" }}>
             <h1 style={{ fontSize: "28px", marginBottom: "8px" }}>My Applications</h1>
@@ -68,6 +75,7 @@ function Applications() {
                                 borderRadius: "10px",
                                 padding: "20px 24px"
                             }}>
+                                {/* Job title + date + remove button */}
                                 <div style={{
                                     display: "flex",
                                     justifyContent: "space-between",
@@ -77,10 +85,27 @@ function Applications() {
                                     <p style={{ fontSize: "15px", fontWeight: "bold" }}>
                                         {app.notes || "Job Application"}
                                     </p>
-                                    <span style={{ color: "#888", fontSize: "13px" }}>
-                                        {new Date(app.applied_at).toLocaleDateString()}
-                                    </span>
+                                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                        <span style={{ color: "#888", fontSize: "13px" }}>
+                                            {new Date(app.applied_at).toLocaleDateString()}
+                                        </span>
+                                        <button
+                                            onClick={() => handleDeleteApplication(app.id)}
+                                            style={{
+                                                backgroundColor: "transparent",
+                                                border: "1px solid #f87171",
+                                                color: "#f87171",
+                                                padding: "3px 10px",
+                                                borderRadius: "6px",
+                                                fontSize: "12px",
+                                                cursor: "pointer"
+                                            }}>
+                                            Remove
+                                        </button>
+                                    </div>
                                 </div>
+
+                                {/* Status badge + dropdown */}
                                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
                                     <span
                                         onClick={() => setOpenDropdown(openDropdown === app.id ? null : app.id)}

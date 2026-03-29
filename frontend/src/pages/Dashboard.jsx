@@ -173,15 +173,17 @@ function Dashboard() {
                         {uploading ? "Uploading..." : "Upload CV"}
                     </button>
                     {cv && (
-                        <button onClick={handleAnalyzeCV} disabled={analyzing}
-                            style={{
-                                backgroundColor: "#2a2a2a",
-                                border: "1px solid #4f8ef7",
-                                color: "#4f8ef7",
-                                opacity: analyzing ? 0.6 : 1
-                            }}>
-                            {analyzing ? "Analyzing..." : "Analyze CV"}
-                        </button>
+                        <button
+                        onClick={handleAnalyzeCV}
+                        disabled={analyzing}
+                        style={{
+                            backgroundColor: "#2a2a2a",
+                            border: "1px solid #4f8ef7",
+                            color: "#4f8ef7",
+                            opacity: analyzing ? 0.6 : 1
+                        }}>
+                        {analyzing ? "Analyzing... (may take up to 20s)" : "Analyze CV"}
+                    </button>
                     )}
                 </div>
             </div>

@@ -1,4 +1,5 @@
 # Job listing & search routes
+from ml.cv_parser import parse_cv
 from db.database import get_db
 import httpx
 from fastapi import APIRouter
@@ -13,6 +14,7 @@ from db.models import CV
 from ml.interview_prep import generate_interview_questions
 from ml.cover_letter import generate_cover_letter
 from ml.llm_service import LLMService
+import json
 
 router = APIRouter()
 
@@ -41,12 +43,15 @@ class JobMatchInput(BaseModel):
 
 @router.post("/save")
 async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(get_current_user)):
-    llm = LLMService()
-    try:
-        description = await llm.translate_to_english(job.description)
-    except:
-        description = job.description  # fallback to original if translation fails
-    
+    description = job.description
+    # only translate if non-English characters detected
+    if any(ord(char) > 127 for char in job.description):
+        llm = LLMService()
+        try:
+            description = await llm.translate_to_english(job.description)
+        except:
+            description = job.description
+
     db_jobs = Joblisting(
         title=job.title,
         company=job.company,
@@ -60,12 +65,17 @@ async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(
     return db_jobs
 
 @router.post("/match")
-async def match_jobs(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
+async def match_cv(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
-        raise HTTPException(404,"Item not found")
-    matched_jobs = await match_cv_to_job(get_cv.raw_text, input.job_description) 
-    return matched_jobs
+        raise HTTPException(404, "No CV found")
+    if get_cv.parsed_skills:
+        skills = json.loads(get_cv.parsed_skills)
+    else:
+        parsed = await parse_cv(get_cv.raw_text)
+        skills = parsed.get("skills", [])
+    result = await match_cv_to_job(get_cv.raw_text, input.job_description, skills)
+    return result
 
 @router.post("/interview-prep")
 async def interview_prep(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
@@ -80,7 +90,7 @@ async def cover_letter(input: JobMatchInput, db = Depends(get_db), current_user 
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
         raise HTTPException(404,"Item not found")
-    cover_letter = await generate_cover_letter(get_cv.raw_text, input.job_description, current_user.username)
+    cover_letter = await generate_cover_letter(get_cv.raw_text, input.job_description)
     return cover_letter
    
 

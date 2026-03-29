@@ -1,5 +1,8 @@
 from ml.llm_service import LLMService
-async def generate_cover_letter(cv_text:str,job_description:str,username:str) -> str:
+async def generate_cover_letter(cv_text:str,job_description:str) -> str:
+    # TEMP MOCK — remove before deployment
+    return "Dear Hiring Manager,\n\nI am writing to express my interest in this position. My experience in Python, FastAPI, Docker and Machine Learning makes me a strong candidate for this role.\n\nI have built end-to-end AI-powered applications including a Smart Job Application Assistant deployed on AWS EC2, demonstrating my ability to deliver production-ready solutions.\n\nI look forward to discussing how I can contribute to your team.\n\nSincerely,\n[Your Name]"
+    
     llm = LLMService()
     cover_letter = await llm.send_prompt(f'''
 You are an expert career consultant and professional writer. Your task is to write a compelling, authentic cover letter.
@@ -53,7 +56,7 @@ Map the candidate's strengths onto the role's needs. Identify:
 **Closing paragraph:**
 - Do NOT use "I would welcome the opportunity to discuss..." or "I look forward to hearing from you" or "Thank you for your consideration."
 - Close with confidence and specificity. Reference something forward-looking — what the candidate is keen to work on, a specific aspect of the role that aligns with where their career is heading, or a concise statement of what they'd bring on day one.
-- Sign off with "Sincerely," followed by the provided name.
+- "Sign off with 'Sincerely,' followed by '[Your Name]' as a placeholder."
 
 ---
 
@@ -76,9 +79,6 @@ Map the candidate's strengths onto the role's needs. Identify:
 
 **Job Description:**
 {job_description}
-
-**Name for sign-off:**
-{username}
 
 ---
 

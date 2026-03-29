@@ -16,6 +16,7 @@ class CV(Base):
     id = Column(Integer, primary_key = True, index = True)
     user_id = Column(Integer,ForeignKey("users.id"), unique = False, index = True)
     raw_text = Column(String, unique = False) #removed index value because it will make the database slower, can't index text it is too large
+    parsed_skills = Column(String, nullable= True) # added this column to store the parsed skills from the CV, can be used for faster matching later on
     file_path = Column(String, unique = True, index = True)
     created_at = Column(DateTime, default = datetime.datetime.utcnow)
 

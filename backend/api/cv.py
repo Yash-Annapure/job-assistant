@@ -11,6 +11,7 @@ from db.models import CV
 import PyPDF2
 import docx
 import io
+import json
 
 # #user_id: int   no need for user_id as the get current user takes it automatically from the token
 # class CV_input(BaseModel):
@@ -57,12 +58,17 @@ async def upload_cv(
     return db_cv
     # pass
 
+import json
+
 @router.post("/analyze")
 async def analyze_cv(db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
-        raise HTTPException(404,"Item not found")
+        raise HTTPException(404, "Item not found")
     parsed_cv = await parse_cv(get_cv.raw_text)
+    # store skills in DB
+    get_cv.parsed_skills = json.dumps(parsed_cv.get("skills", []))
+    db.commit()
     return parsed_cv
 
 @router.delete("/delete")

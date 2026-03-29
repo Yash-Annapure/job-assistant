@@ -47,11 +47,13 @@ async def update_application(id:int, application:ApplicationUpdate, db = Depends
 
 
 @router.delete("/{id}")
-async def delete_application(id:int, db = Depends(get_db), current_user = Depends(get_current_user)):
-    db_application = db.query(Application).filter(Application.id == id, Application.user_id == current_user.id).first()
-    if not db_application:
-        raise HTTPException(404,"No existing application to delete")
-    
-    db.delete(db_application)
+async def delete_application(id: int, db = Depends(get_db), current_user = Depends(get_current_user)):
+    application = db.query(Application).filter(
+        Application.id == id,
+        Application.user_id == current_user.id
+    ).first()
+    if not application:
+        raise HTTPException(404, "Application not found")
+    db.delete(application)
     db.commit()
-    return {"message": "Application deleted successfully", "id": id}
+    return {"message": "Application deleted"}

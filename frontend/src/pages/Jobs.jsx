@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { searchJob, matchCV, createApplication, saveJob, getMe, generateCoverLetter } from "../api"
+import { searchJob, matchCV, createApplication, saveJob, getMe, generateCoverLetter, getInterviewPrep } from "../api"
 
 function Jobs() {
     const [query, setQuery] = useState("")
@@ -10,6 +10,8 @@ function Jobs() {
     const [user, setUser] = useState(null)
     const [coverLetter, setCoverLetter] = useState(null)
     const [generatingLetter, setGeneratingLetter] = useState(null)
+    const [interviewPrep, setInterviewPrep] = useState(null)
+    const [generatingPrep, setGeneratingPrep] = useState(null)
 
     useEffect(() => {
         const fetchUser = async () => {
@@ -33,27 +35,38 @@ function Jobs() {
     )
 
     const handleMatchCV = async (job) => {
-    setMatchingJob(job.slug)
-    setMatchResult(null)
-    const data = await matchCV(job.description)
-    setMatchingJob(null)
-    if (data && data.match_score !== undefined) {
-        setMatchResult({ ...data, jobTitle: job.title })
-    } else if (data && data.detail && data.detail.includes("busy")) {
-        alert("AI service is busy — please wait a few seconds and try again.")
+        setMatchingJob(job.slug)
+        setMatchResult(null)
+        const data = await matchCV(job.description)
+        setMatchingJob(null)
+        if (data && data.match_score !== undefined) {
+            setMatchResult({ ...data, jobTitle: job.title })
+        } else if (data && data.detail && data.detail.includes("busy")) {
+            alert("AI service is busy — please wait a few seconds and try again.")
+        }
     }
-}
 
     const handleCoverLetter = async (job) => {
-    setGeneratingLetter(job.slug)
-    const data = await generateCoverLetter(job.description)
-    setGeneratingLetter(null)
-    if (data && typeof data === "string") {
-        setCoverLetter({ text: data, jobTitle: job.title })
-    } else if (data && data.detail && data.detail.includes("busy")) {
-        alert("AI service is busy — please wait a few seconds and try again.")
+        setGeneratingLetter(job.slug)
+        const data = await generateCoverLetter(job.description)
+        setGeneratingLetter(null)
+        if (data && typeof data === "string") {
+            setCoverLetter({ text: data, jobTitle: job.title })
+        } else if (data && data.detail && data.detail.includes("busy")) {
+            alert("AI service is busy — please wait a few seconds and try again.")
+        }
     }
-}
+
+    const handleInterviewPrep = async (job) => {
+        setGeneratingPrep(job.slug)
+        const data = await getInterviewPrep(job.description)
+        setGeneratingPrep(null)
+        if (data && data.questions) {
+            setInterviewPrep({ questions: data.questions, jobTitle: job.title })
+        } else if (data && data.detail && data.detail.includes("busy")) {
+            alert("AI service is busy — please wait a few seconds and try again.")
+        }
+    }
 
     const handleSaveApplication = async (job) => {
         const savedJob = await saveJob({
@@ -221,6 +234,49 @@ function Jobs() {
                 </div>
             )}
 
+            {/* Interview Prep */}
+            {interviewPrep && (
+                <div style={{
+                    backgroundColor: "#1a1a1a",
+                    border: "1px solid #fb923c",
+                    borderRadius: "12px",
+                    padding: "24px",
+                    marginBottom: "24px"
+                }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
+                        <h3 style={{ fontSize: "16px" }}>Interview Prep — {interviewPrep.jobTitle}</h3>
+                        <button
+                            onClick={() => setInterviewPrep(null)}
+                            style={{
+                                backgroundColor: "transparent",
+                                border: "1px solid #2a2a2a",
+                                color: "#888", fontSize: "13px"
+                            }}>Close</button>
+                    </div>
+                    {interviewPrep.questions.map((item, i) => (
+                        <div key={i} style={{
+                            backgroundColor: "#0f0f0f",
+                            border: "1px solid #2a2a2a",
+                            borderRadius: "10px",
+                            padding: "20px",
+                            marginBottom: "16px"
+                        }}>
+                            <p style={{
+                                color: "#fb923c", fontSize: "13px",
+                                marginBottom: "12px", fontWeight: "bold"
+                            }}>{item.skill}</p>
+                            {item.questions.map((q, j) => (
+                                <p key={j} style={{
+                                    color: "#e8e8e8", fontSize: "14px",
+                                    marginBottom: "8px", paddingLeft: "12px",
+                                    borderLeft: "2px solid #2a2a2a"
+                                }}>{j + 1}. {q}</p>
+                            ))}
+                        </div>
+                    ))}
+                </div>
+            )}
+
             {/* Job Results */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                 {filteredJobs.length === 0 && jobs.length > 0 ? (
@@ -265,6 +321,18 @@ function Jobs() {
                                         opacity: generatingLetter === job.slug ? 0.6 : 1
                                     }}>
                                     {generatingLetter === job.slug ? "Generating..." : "Cover Letter"}
+                                </button>
+                                <button
+                                    onClick={() => handleInterviewPrep(job)}
+                                    disabled={generatingPrep === job.slug}
+                                    style={{
+                                        backgroundColor: "transparent",
+                                        border: "1px solid #fb923c",
+                                        color: "#fb923c",
+                                        padding: "5px 12px", fontSize: "13px",
+                                        opacity: generatingPrep === job.slug ? 0.6 : 1
+                                    }}>
+                                    {generatingPrep === job.slug ? "Generating..." : "Interview Prep"}
                                 </button>
                                 <button
                                     onClick={() => handleSaveApplication(job)}

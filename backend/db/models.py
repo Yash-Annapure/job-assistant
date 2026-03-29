@@ -15,7 +15,7 @@ class CV(Base):
     __tablename__ = "cv"
     id = Column(Integer, primary_key = True, index = True)
     user_id = Column(Integer,ForeignKey("users.id"), unique = False, index = True)
-    raw_text = Column(String, unique = False, index = True)
+    raw_text = Column(String, unique = False) #removed index value because it will make the database slower, can't index text it is too large
     file_path = Column(String, unique = True, index = True)
     created_at = Column(DateTime, default = datetime.datetime.utcnow)
 
@@ -33,8 +33,8 @@ class Joblisting(Base):
 class Application(Base):
     __tablename__ = "Application"   # id, user_id, job_id, status, match_score, notes, applied_at
     id = Column(Integer, primary_key = True, index = True)
-    user_id = Column(Integer,ForeignKey("users.id"), unique = True, index = True)
-    job_id = Column(Integer,ForeignKey("joblisting.id"), unique = True, index = True)
+    user_id = Column(Integer,ForeignKey("users.id"), index = True)
+    job_id = Column(Integer,ForeignKey("joblisting.id"), index = True)
     status = Column(String, default = "applied")
     match_score = Column(Integer, index = True)
     notes = Column(String, unique = False, index = True)

@@ -36,16 +36,18 @@ export const searchJob = async (query,location) =>{
         })
     return handleResponse(response)
 }
-export const uploadCV = async (raw_text,file_path) => {
-    const response = await fetch(`${API_URL}/cv/upload`,{
-        method : "POST",
+export const uploadCV = async (file) => {
+    const formData = new FormData()
+    formData.append("file", file)
+    const response = await fetch(`${API_URL}/cv/upload`, {
+        method: "POST",
         headers: {
-            "Content-Type": "application/json",
             "Authorization": `Bearer ${getToken()}`
+            // NO Content-Type header — browser sets it automatically for FormData
         },
-        body : JSON.stringify({raw_text,file_path})
-        })
-        return handleResponse(response)
+        body: formData
+    })
+    return handleResponse(response)
 }
 
 export const matchCV = async (job_description) => {
@@ -112,3 +114,41 @@ export const deleteCV = async () => {
     return handleResponse(response)
 }
 
+export const analyzeCV = async () => {
+    const response = await fetch(`${API_URL}/cv/analyze`, {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+    return handleResponse(response)
+}
+
+export const getCV = async () => {
+    const response = await fetch(`${API_URL}/cv/get`, {
+        headers: { "Authorization": `Bearer ${getToken()}` }
+    })
+    return handleResponse(response)
+}
+
+export const saveJob = async (job) => {
+    const response = await fetch(`${API_URL}/jobs/save`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify(job)
+    })
+    return handleResponse(response)
+}
+
+export const updateApplication = async (id, status, notes) => {
+    const response = await fetch(`${API_URL}/applications/${id}`, {
+        method: "PATCH",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${getToken()}`
+        },
+        body: JSON.stringify({ status, notes })
+    })
+    return handleResponse(response)
+}

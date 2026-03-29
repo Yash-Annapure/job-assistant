@@ -42,8 +42,18 @@ class JobMatchInput(BaseModel):
 @router.post("/save")
 async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(get_current_user)):
     llm = LLMService()
-    job.description = await llm.translate_to_english(job.description)
-    db_jobs = Joblisting(title = job.title, company = job.company, description = job.description, url = job.url, source = "arbeitnow")
+    try:
+        description = await llm.translate_to_english(job.description)
+    except:
+        description = job.description  # fallback to original if translation fails
+    
+    db_jobs = Joblisting(
+        title=job.title,
+        company=job.company,
+        description=description,
+        url=job.url,
+        source="arbeitnow"
+    )
     db.add(db_jobs)
     db.commit()
     db.refresh(db_jobs)

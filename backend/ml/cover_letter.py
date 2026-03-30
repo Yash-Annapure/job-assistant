@@ -1,8 +1,14 @@
+import asyncio
+import os
 from ml.llm_service import LLMService
+from ml.demo_responses import DEMO_COVER_LETTER
+
+DEMO_MODE = os.getenv("DEMO_MODE", "false").lower() == "true"
 async def generate_cover_letter(cv_text:str,job_description:str) -> str:
     # TEMP MOCK — remove before deployment
-    return "Dear Hiring Manager,\n\nI am writing to express my interest in this position. My experience in Python, FastAPI, Docker and Machine Learning makes me a strong candidate for this role.\n\nI have built end-to-end AI-powered applications including a Smart Job Application Assistant deployed on AWS EC2, demonstrating my ability to deliver production-ready solutions.\n\nI look forward to discussing how I can contribute to your team.\n\nSincerely,\n[Your Name]"
-    
+    if DEMO_MODE:
+        await asyncio.sleep(2)
+        return DEMO_COVER_LETTER    
     llm = LLMService()
     cover_letter = await llm.send_prompt(f'''
 You are an expert career consultant and professional writer. Your task is to write a compelling, authentic cover letter.

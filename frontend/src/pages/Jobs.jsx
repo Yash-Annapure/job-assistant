@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react"
-import { searchJob, matchCV, createApplication, saveJob, getMe, generateCoverLetter, getInterviewPrep } from "../api"
+import { useState} from "react"
+import { searchJob, matchCV, createApplication, saveJob, generateCoverLetter} from "../api"
 
 function Jobs() {
     const [query, setQuery] = useState("")
@@ -7,19 +7,20 @@ function Jobs() {
     const [jobs, setJobs] = useState([])
     const [matchResult, setMatchResult] = useState(null)
     const [matchingJob, setMatchingJob] = useState(null)
-    const [user, setUser] = useState(null)
     const [coverLetter, setCoverLetter] = useState(null)
     const [generatingLetter, setGeneratingLetter] = useState(null)
-    const [interviewPrep, setInterviewPrep] = useState(null)
-    const [generatingPrep, setGeneratingPrep] = useState(null)
+    // Interview Prep (disabled for v1)
+    // const [interviewPrep, setInterviewPrep] = useState(null)
+    // const [generatingPrep, setGeneratingPrep] = useState(null)
+    // const [user, setUser] = useState(null)
 
-    useEffect(() => {
-        const fetchUser = async () => {
-            const data = await getMe()
-            if (data) setUser(data)
-        }
-        fetchUser()
-    }, [])
+    // useEffect(() => {
+    //     const fetchUser = async () => {
+    //         const data = await getMe()
+    //         if (data) setUser(data)
+    //     }
+    //     fetchUser()
+    // }, [])
 
     const handleSearch = async () => {
         const data = await searchJob(query, location)
@@ -56,17 +57,17 @@ function Jobs() {
             alert("AI service is busy — please wait a few seconds and try again.")
         }
     }
-
-    const handleInterviewPrep = async (job) => {
-        setGeneratingPrep(job.slug)
-        const data = await getInterviewPrep(job.description)
-        setGeneratingPrep(null)
-        if (data && data.questions) {
-            setInterviewPrep({ questions: data.questions, jobTitle: job.title })
-        } else if (data && data.detail && data.detail.includes("busy")) {
-            alert("AI service is busy — please wait a few seconds and try again.")
-        }
-    }
+    //Feature to be implemented in the future - requires more work on the LLM side to generate good questions based on CV and job description
+    // const handleInterviewPrep = async (job) => {
+    //     setGeneratingPrep(job.slug)
+    //     const data = await getInterviewPrep(job.description)
+    //     setGeneratingPrep(null)
+    //     if (data && data.questions) {
+    //         setInterviewPrep({ questions: data.questions, jobTitle: job.title })
+    //     } else if (data && data.detail && data.detail.includes("busy")) {
+    //         alert("AI service is busy — please wait a few seconds and try again.")
+    //     }
+    // }
 
     const handleSaveApplication = async (job) => {
         const savedJob = await saveJob({
@@ -233,9 +234,9 @@ function Jobs() {
                     />
                 </div>
             )}
-
+            {/* Feature to be implemented in the future - requires more work on the LLM side to generate good questions based on CV and job description */}
             {/* Interview Prep */}
-            {interviewPrep && (
+            {/* {interviewPrep && (
                 <div style={{
                     backgroundColor: "#1a1a1a",
                     border: "1px solid #fb923c",
@@ -275,7 +276,7 @@ function Jobs() {
                         </div>
                     ))}
                 </div>
-            )}
+            )} */}
 
             {/* Job Results */}
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
@@ -322,7 +323,7 @@ function Jobs() {
                                     }}>
                                     {generatingLetter === job.slug ? "Generating..." : "Cover Letter"}
                                 </button>
-                                <button
+                                {/* <button
                                     onClick={() => handleInterviewPrep(job)}
                                     disabled={generatingPrep === job.slug}
                                     style={{
@@ -333,7 +334,7 @@ function Jobs() {
                                         opacity: generatingPrep === job.slug ? 0.6 : 1
                                     }}>
                                     {generatingPrep === job.slug ? "Generating..." : "Interview Prep"}
-                                </button>
+                                </button> */}
                                 <button
                                     onClick={() => handleSaveApplication(job)}
                                     style={{

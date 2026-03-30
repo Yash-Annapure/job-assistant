@@ -77,13 +77,14 @@ async def match_cv(input: JobMatchInput, db = Depends(get_db), current_user = De
     result = await match_cv_to_job(get_cv.raw_text, input.job_description, skills)
     return result
 
-@router.post("/interview-prep")
-async def interview_prep(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
-    get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
-    if not get_cv:
-        raise HTTPException(404,"Item not found")
-    interview_prep_questions = await generate_interview_questions(get_cv.raw_text, input.job_description)
-    return interview_prep_questions
+#Feature to be implemented in the future - requires more work on the LLM side to generate good questions based on CV and job description
+# @router.post("/interview-prep")
+# async def interview_prep(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
+#     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
+#     if not get_cv:
+#         raise HTTPException(404,"Item not found")
+#     interview_prep_questions = await generate_interview_questions(get_cv.raw_text, input.job_description)
+#     return interview_prep_questions
 
 @router.post("/cover-letter")
 async def cover_letter(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):

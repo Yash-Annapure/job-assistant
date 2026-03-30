@@ -8,11 +8,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-engine = create_engine(f"postgresql+psycopg2://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@db:5432/postgres_db")
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"sslmode": "require"}
+)
 
 Session = sessionmaker(bind=engine)
-
-session = Session()
 
 def get_db():
     db = Session()   # opens the session

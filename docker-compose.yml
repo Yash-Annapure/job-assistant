@@ -1,20 +1,21 @@
 services:
-    db:
-        #for postgres DB
-        image: "postgres:15"
-        container_name: postgres_db
-        ports:
-            - "5432:5432"
-        env_file:
-            - .env
-        volumes:
-            - PGDATA:/var/lib/postgresql/data # to persist the data if a container is restarting
-        healthcheck:
-            test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
-            start_period: 10s
-            interval: 5s
-            timeout: 5s
-            retries: 5
+    # MIGRATED TO SUPABASE DB, UNCOMMENT IF YOU WANT TO USE POSTGRES LOCALLY
+    # db:
+    #     #for postgres DB
+    #     image: "postgres:15"
+    #     container_name: postgres_db
+    #     ports:
+    #         - "5432:5432"
+    #     env_file:
+    #         - .env
+    #     volumes:
+    #         - PGDATA:/var/lib/postgresql/data # to persist the data if a container is restarting
+    #     healthcheck:
+    #         test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+    #         start_period: 10s
+    #         interval: 5s
+    #         timeout: 5s
+    #         retries: 5
 
     api:
         #for fast API
@@ -22,9 +23,7 @@ services:
         build: backend
         ports:
             - "8000:8000"
-        depends_on:
-            db:
-                condition: service_healthy
+        # depends_on removed — database is now hosted on Supabase
         env_file:
             - .env
         environment:
@@ -33,6 +32,9 @@ services:
         volumes:
             - ./backend:/app
             - /app/.venv # to exclude the venv from restarting with every request and to keep it separate
+        extra_hosts:
+            - "host.docker.internal:host-gateway" # to allow the container to access the host machine for development purposes
 
-volumes:
-    PGDATA:
+# PGDATA volume removed — database is now hosted on Supabase
+# volumes:
+#     PGDATA:

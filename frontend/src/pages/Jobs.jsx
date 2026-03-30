@@ -1,5 +1,5 @@
-import { useState} from "react"
-import { searchJob, matchCV, createApplication, saveJob, generateCoverLetter} from "../api"
+import { useState } from "react"
+import { searchJob, matchCV, createApplication, saveJob, generateCoverLetter } from "../api"
 
 function Jobs() {
     const [query, setQuery] = useState("")
@@ -9,18 +9,7 @@ function Jobs() {
     const [matchingJob, setMatchingJob] = useState(null)
     const [coverLetter, setCoverLetter] = useState(null)
     const [generatingLetter, setGeneratingLetter] = useState(null)
-    // Interview Prep (disabled for v1)
-    // const [interviewPrep, setInterviewPrep] = useState(null)
-    // const [generatingPrep, setGeneratingPrep] = useState(null)
-    // const [user, setUser] = useState(null)
-
-    // useEffect(() => {
-    //     const fetchUser = async () => {
-    //         const data = await getMe()
-    //         if (data) setUser(data)
-    //     }
-    //     fetchUser()
-    // }, [])
+    const [trackMessage, setTrackMessage] = useState(null)
 
     const handleSearch = async () => {
         const data = await searchJob(query, location)
@@ -29,9 +18,7 @@ function Jobs() {
 
     const filteredJobs = jobs.filter(job =>
         location === "" ||
-        query.toLowerCase().split(" ").some(word =>
-            job.title.toLowerCase().includes(word)
-        ) ||
+        query.toLowerCase().split(" ").some(word => job.title.toLowerCase().includes(word)) ||
         job.location.toLowerCase().includes(location.toLowerCase())
     )
 
@@ -41,7 +28,7 @@ function Jobs() {
         const data = await matchCV(job.description)
         setMatchingJob(null)
         if (data && data.match_score !== undefined) {
-            setMatchResult({ ...data, jobTitle: job.title })
+            setMatchResult({ ...data, jobTitle: job.title, jobSlug: job.slug })
         } else if (data && data.detail && data.detail.includes("busy")) {
             alert("AI service is busy — please wait a few seconds and try again.")
         }
@@ -52,297 +39,247 @@ function Jobs() {
         const data = await generateCoverLetter(job.description)
         setGeneratingLetter(null)
         if (data && typeof data === "string") {
-            setCoverLetter({ text: data, jobTitle: job.title })
+            setCoverLetter({ text: data, jobTitle: job.title, jobSlug: job.slug })
         } else if (data && data.detail && data.detail.includes("busy")) {
             alert("AI service is busy — please wait a few seconds and try again.")
         }
     }
-    //Feature to be implemented in the future - requires more work on the LLM side to generate good questions based on CV and job description
-    // const handleInterviewPrep = async (job) => {
-    //     setGeneratingPrep(job.slug)
-    //     const data = await getInterviewPrep(job.description)
-    //     setGeneratingPrep(null)
-    //     if (data && data.questions) {
-    //         setInterviewPrep({ questions: data.questions, jobTitle: job.title })
-    //     } else if (data && data.detail && data.detail.includes("busy")) {
-    //         alert("AI service is busy — please wait a few seconds and try again.")
-    //     }
-    // }
 
     const handleSaveApplication = async (job) => {
         const savedJob = await saveJob({
-            title: job.title,
-            company: job.company_name,
-            description: job.description,
-            url: job.url
+            title: job.title, company: job.company_name,
+            description: job.description, url: job.url
         })
         if (savedJob && savedJob.id) {
             const data = await createApplication(savedJob.id, "applied", job.title)
             if (data && data.id) {
-                alert(`✓ "${job.title}" added to your applications!`)
+                setTrackMessage({ slug: job.slug, text: `✓ "${job.title}" added to applications`, success: true })
+                setTimeout(() => setTrackMessage(null), 3000)
             } else {
-                alert("Failed to save application.")
+                setTrackMessage({ slug: job.slug, text: "Failed to save application.", success: false })
+                setTimeout(() => setTrackMessage(null), 3000)
             }
         }
     }
 
-    return (
-        <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 24px" }}>
-            <h1 style={{ fontSize: "28px", marginBottom: "8px" }}>Find Jobs</h1>
-            <p style={{ color: "#888", marginBottom: "32px", fontSize: "14px" }}>
-                💡 Include job type in your search e.g. "werkstudent python"
-            </p>
+    const outlineBtn = (color) => ({
+        backgroundColor: "transparent",
+        border: `1px solid ${color}`,
+        color: color,
+        padding: "5px 12px",
+        fontSize: "12px",
+        borderRadius: "6px"
+    })
 
-            {/* Search Card */}
-            <div style={{
-                backgroundColor: "#1a1a1a",
-                border: "1px solid #2a2a2a",
-                borderRadius: "12px",
-                padding: "24px",
-                marginBottom: "24px",
-                display: "flex",
-                flexDirection: "column",
-                gap: "12px"
-            }}>
-                <input onChange={(e) => setQuery(e.target.value)} placeholder="e.g. werkstudent python" />
-                <input onChange={(e) => setLocation(e.target.value)} placeholder="Location e.g. Berlin" />
-                <button onClick={handleSearch}>Search</button>
+    return (
+        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+
+            {/* Header */}
+            <div style={{ marginBottom: "28px", textAlign: "center" }}>
+                <h1 style={{ fontSize: "26px", fontWeight: "600", letterSpacing: "-0.5px", marginBottom: "6px" }}>
+                    Find Jobs
+                </h1>
+                <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px" }}>
+                    Include job type in your search — e.g. "werkstudent python"
+                </p>
             </div>
 
-            {/* Match Result */}
-            {matchResult && (
-                <div style={{
-                    backgroundColor: "#1a1a1a",
-                    border: "1px solid #4f8ef7",
-                    borderRadius: "12px",
-                    padding: "24px",
-                    marginBottom: "24px"
-                }}>
-                    <h3 style={{ fontSize: "16px", marginBottom: "16px" }}>
-                        Match Result — {matchResult.jobTitle}
-                    </h3>
-                    <div style={{ display: "flex", gap: "16px", marginBottom: "16px" }}>
-                        <div style={{
-                            backgroundColor: "#0f0f0f",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "10px",
-                            padding: "16px 24px",
-                            textAlign: "center"
-                        }}>
-                            <p style={{ color: "#888", fontSize: "12px", marginBottom: "4px" }}>MATCH SCORE</p>
-                            <p style={{
-                                fontSize: "32px",
-                                fontWeight: "bold",
-                                color: matchResult.match_score > 70 ? "#4ade80" : matchResult.match_score > 50 ? "#facc15" : "#f87171"
-                            }}>
-                                {matchResult.match_score}%
-                            </p>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                            {matchResult["skill-analysis"]?.missing_skills?.length > 0 && (
-                                <div style={{ marginBottom: "12px" }}>
-                                    <p style={{ color: "#888", fontSize: "12px", marginBottom: "8px" }}>MISSING SKILLS</p>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                        {matchResult["skill-analysis"].missing_skills.map((skill, i) => (
-                                            <span key={i} style={{
-                                                backgroundColor: "#2a0000",
-                                                border: "1px solid #f87171",
-                                                color: "#f87171",
-                                                borderRadius: "6px",
-                                                padding: "3px 10px",
-                                                fontSize: "12px"
-                                            }}>{skill}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                            {matchResult["skill-analysis"]?.matching_skills?.length > 0 && (
-                                <div>
-                                    <p style={{ color: "#888", fontSize: "12px", marginBottom: "8px" }}>MATCHING SKILLS</p>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-                                        {matchResult["skill-analysis"].matching_skills.map((skill, i) => (
-                                            <span key={i} style={{
-                                                backgroundColor: "#002a00",
-                                                border: "1px solid #4ade80",
-                                                color: "#4ade80",
-                                                borderRadius: "6px",
-                                                padding: "3px 10px",
-                                                fontSize: "12px"
-                                            }}>{skill}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                    <button onClick={() => setMatchResult(null)} style={{
-                        backgroundColor: "transparent",
-                        border: "1px solid #2a2a2a",
-                        color: "#888", fontSize: "13px"
-                    }}>Close</button>
-                </div>
-            )}
+            {/* Search */}
+            <div style={{
+                backgroundColor: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                borderRadius: "14px",
+                padding: "20px",
+                marginBottom: "28px",
+                display: "flex",
+                gap: "10px"
+            }}>
+                <input onChange={(e) => setQuery(e.target.value)} placeholder="Role or keywords" style={{ flex: 2 }} />
+                <input onChange={(e) => setLocation(e.target.value)} placeholder="Location" style={{ flex: 1 }} />
+                <button onClick={handleSearch} style={{ width: "auto", padding: "10px 20px", fontSize: "13px", whiteSpace: "nowrap" }}>
+                    Search
+                </button>
+            </div>
 
-            {/* Cover Letter */}
-            {coverLetter && (
-                <div style={{
-                    backgroundColor: "#1a1a1a",
-                    border: "1px solid #a78bfa",
-                    borderRadius: "12px",
-                    padding: "24px",
-                    marginBottom: "24px"
-                }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "16px" }}>
-                        <h3 style={{ fontSize: "16px" }}>Cover Letter — {coverLetter.jobTitle}</h3>
-                        <div style={{ display: "flex", gap: "8px" }}>
-                            <button
-                                onClick={() => {
-                                    navigator.clipboard.writeText(coverLetter.text)
-                                    alert("Copied to clipboard!")
-                                }}
-                                style={{
-                                    backgroundColor: "#2a2a2a",
-                                    border: "1px solid #2a2a2a",
-                                    color: "#e8e8e8",
-                                    padding: "5px 12px", fontSize: "13px"
-                                }}>Copy</button>
-                            <button
-                                onClick={() => setCoverLetter(null)}
-                                style={{
-                                    backgroundColor: "transparent",
-                                    border: "1px solid #2a2a2a",
-                                    color: "#888", fontSize: "13px"
-                                }}>Close</button>
-                        </div>
-                    </div>
-                    <textarea
-                        value={coverLetter.text}
-                        onChange={(e) => setCoverLetter({ ...coverLetter, text: e.target.value })}
-                        rows={20}
-                        style={{
-                            width: "100%",
-                            backgroundColor: "#0f0f0f",
-                            border: "1px solid #2a2a2a",
-                            color: "#e8e8e8",
-                            borderRadius: "8px",
-                            padding: "16px",
-                            fontSize: "14px",
-                            lineHeight: "1.8",
-                            resize: "vertical",
-                            fontFamily: "inherit"
-                        }}
-                    />
-                </div>
-            )}
-            {/* Feature to be implemented in the future - requires more work on the LLM side to generate good questions based on CV and job description */}
-            {/* Interview Prep */}
-            {/* {interviewPrep && (
-                <div style={{
-                    backgroundColor: "#1a1a1a",
-                    border: "1px solid #fb923c",
-                    borderRadius: "12px",
-                    padding: "24px",
-                    marginBottom: "24px"
-                }}>
-                    <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "20px" }}>
-                        <h3 style={{ fontSize: "16px" }}>Interview Prep — {interviewPrep.jobTitle}</h3>
-                        <button
-                            onClick={() => setInterviewPrep(null)}
-                            style={{
-                                backgroundColor: "transparent",
-                                border: "1px solid #2a2a2a",
-                                color: "#888", fontSize: "13px"
-                            }}>Close</button>
-                    </div>
-                    {interviewPrep.questions.map((item, i) => (
-                        <div key={i} style={{
-                            backgroundColor: "#0f0f0f",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "10px",
-                            padding: "20px",
-                            marginBottom: "16px"
-                        }}>
-                            <p style={{
-                                color: "#fb923c", fontSize: "13px",
-                                marginBottom: "12px", fontWeight: "bold"
-                            }}>{item.skill}</p>
-                            {item.questions.map((q, j) => (
-                                <p key={j} style={{
-                                    color: "#e8e8e8", fontSize: "14px",
-                                    marginBottom: "8px", paddingLeft: "12px",
-                                    borderLeft: "2px solid #2a2a2a"
-                                }}>{j + 1}. {q}</p>
-                            ))}
-                        </div>
-                    ))}
-                </div>
-            )} */}
-
-            {/* Job Results */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {/* Results */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 {filteredJobs.length === 0 && jobs.length > 0 ? (
-                    <p style={{ color: "#888" }}>No matching jobs found. Try different search terms.</p>
+                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "14px", textAlign: "center" }}>
+                        No matching jobs found.
+                    </p>
                 ) : (
                     filteredJobs.map((job) => (
-                        <div key={job.slug} style={{
-                            backgroundColor: "#1a1a1a",
-                            border: "1px solid #2a2a2a",
-                            borderRadius: "10px",
-                            padding: "20px 24px"
-                        }}>
-                            <h3 style={{ fontSize: "16px", marginBottom: "6px" }}>{job.title}</h3>
-                            <p style={{ color: "#888", fontSize: "14px", marginBottom: "12px" }}>
-                                {job.company_name} — {job.location}
-                            </p>
-                            <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-                                <a href={job.url} target="_blank" rel="noreferrer" style={{
-                                    fontSize: "13px", color: "#4f8ef7",
-                                    border: "1px solid #4f8ef7",
-                                    padding: "5px 12px", borderRadius: "6px"
-                                }}>View Job →</a>
-                                <button
-                                    onClick={() => handleMatchCV(job)}
-                                    disabled={matchingJob === job.slug}
-                                    style={{
-                                        backgroundColor: "#2a2a2a", color: "#e8e8e8",
-                                        border: "1px solid #2a2a2a",
-                                        padding: "5px 12px", fontSize: "13px",
-                                        opacity: matchingJob === job.slug ? 0.6 : 1
+                        <div key={job.slug}>
+                            {/* Job Card */}
+                            <div style={{
+                                backgroundColor: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.08)",
+                                borderRadius: matchResult?.jobSlug === job.slug || coverLetter?.jobSlug === job.slug ? "12px 12px 0 0" : "12px",
+                                padding: "18px 22px"
+                            }}>
+                                <div style={{ marginBottom: "12px" }}>
+                                    <h3 style={{ fontSize: "15px", fontWeight: "500", marginBottom: "4px" }}>{job.title}</h3>
+                                    <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "13px" }}>
+                                        {job.company_name} · {job.location}
+                                    </p>
+                                </div>
+                                <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                                    <a href={job.url} target="_blank" rel="noreferrer" style={{
+                                        ...outlineBtn("rgba(255,255,255,0.2)"),
+                                        color: "rgba(255,255,255,0.6)"
+                                    }}>View →</a>
+                                    <button
+                                        onClick={() => handleMatchCV(job)}
+                                        disabled={matchingJob === job.slug}
+                                        style={{ ...outlineBtn("rgba(79,142,247,0.6)"), color: "#4f8ef7", opacity: matchingJob === job.slug ? 0.5 : 1 }}>
+                                        {matchingJob === job.slug ? "Matching..." : "Match CV"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleCoverLetter(job)}
+                                        disabled={generatingLetter === job.slug}
+                                        style={{ ...outlineBtn("rgba(167,139,250,0.6)"), color: "#a78bfa", opacity: generatingLetter === job.slug ? 0.5 : 1 }}>
+                                        {generatingLetter === job.slug ? "Generating..." : "Cover Letter"}
+                                    </button>
+                                    <button
+                                        onClick={() => handleSaveApplication(job)}
+                                        style={{ ...outlineBtn("rgba(74,222,128,0.5)"), color: "#4ade80" }}>
+                                        + Track
+                                    </button>
+                                </div>
+
+                                {/* Inline track message */}
+                                {trackMessage?.slug === job.slug && (
+                                    <div style={{
+                                        marginTop: "12px",
+                                        padding: "8px 12px",
+                                        backgroundColor: trackMessage.success ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+                                        border: `1px solid ${trackMessage.success ? "rgba(74,222,128,0.2)" : "rgba(248,113,113,0.2)"}`,
+                                        borderRadius: "7px",
+                                        fontSize: "13px",
+                                        color: trackMessage.success ? "#4ade80" : "#f87171"
                                     }}>
-                                    {matchingJob === job.slug ? "Matching..." : "Match CV"}
-                                </button>
-                                <button
-                                    onClick={() => handleCoverLetter(job)}
-                                    disabled={generatingLetter === job.slug}
-                                    style={{
-                                        backgroundColor: "transparent",
-                                        border: "1px solid #a78bfa",
-                                        color: "#a78bfa",
-                                        padding: "5px 12px", fontSize: "13px",
-                                        opacity: generatingLetter === job.slug ? 0.6 : 1
-                                    }}>
-                                    {generatingLetter === job.slug ? "Generating..." : "Cover Letter"}
-                                </button>
-                                {/* <button
-                                    onClick={() => handleInterviewPrep(job)}
-                                    disabled={generatingPrep === job.slug}
-                                    style={{
-                                        backgroundColor: "transparent",
-                                        border: "1px solid #fb923c",
-                                        color: "#fb923c",
-                                        padding: "5px 12px", fontSize: "13px",
-                                        opacity: generatingPrep === job.slug ? 0.6 : 1
-                                    }}>
-                                    {generatingPrep === job.slug ? "Generating..." : "Interview Prep"}
-                                </button> */}
-                                <button
-                                    onClick={() => handleSaveApplication(job)}
-                                    style={{
-                                        backgroundColor: "transparent", color: "#4ade80",
-                                        border: "1px solid #4ade80",
-                                        padding: "5px 12px", fontSize: "13px"
-                                    }}>+ Track</button>
+                                        {trackMessage.text}
+                                    </div>
+                                )}
                             </div>
+
+                            {/* Inline Match Result */}
+                            {matchResult?.jobSlug === job.slug && (
+                                <div style={{
+                                    backgroundColor: "rgba(79,142,247,0.04)",
+                                    border: "1px solid rgba(79,142,247,0.2)",
+                                    borderTop: "none",
+                                    borderRadius: coverLetter?.jobSlug === job.slug ? "0" : "0 0 12px 12px",
+                                    padding: "18px 22px"
+                                }}>
+                                    <div style={{ display: "flex", gap: "16px", marginBottom: "14px" }}>
+                                        <div style={{
+                                            backgroundColor: "rgba(255,255,255,0.04)",
+                                            border: "1px solid rgba(255,255,255,0.07)",
+                                            borderRadius: "10px",
+                                            padding: "14px 20px",
+                                            textAlign: "center",
+                                            minWidth: "100px"
+                                        }}>
+                                            <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "10px", marginBottom: "6px", letterSpacing: "0.5px", textTransform: "uppercase" }}>Match</p>
+                                            <p style={{
+                                                fontSize: "28px", fontWeight: "700",
+                                                color: matchResult.match_score > 70 ? "#4ade80" : matchResult.match_score > 50 ? "#facc15" : "#f87171"
+                                            }}>{matchResult.match_score}%</p>
+                                        </div>
+                                        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: "12px" }}>
+                                            {matchResult["skill-analysis"]?.missing_skills?.length > 0 && (
+                                                <div>
+                                                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", marginBottom: "7px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Missing</p>
+                                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                                                        {matchResult["skill-analysis"].missing_skills.map((skill, i) => (
+                                                            <span key={i} style={{
+                                                                backgroundColor: "rgba(248,113,113,0.08)",
+                                                                border: "1px solid rgba(248,113,113,0.2)",
+                                                                color: "#f87171", borderRadius: "5px",
+                                                                padding: "3px 9px", fontSize: "12px"
+                                                            }}>{skill}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                            {matchResult["skill-analysis"]?.matching_skills?.length > 0 && (
+                                                <div>
+                                                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "10px", marginBottom: "7px", textTransform: "uppercase", letterSpacing: "0.5px" }}>Matching</p>
+                                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                                                        {matchResult["skill-analysis"].matching_skills.map((skill, i) => (
+                                                            <span key={i} style={{
+                                                                backgroundColor: "rgba(74,222,128,0.08)",
+                                                                border: "1px solid rgba(74,222,128,0.2)",
+                                                                color: "#4ade80", borderRadius: "5px",
+                                                                padding: "3px 9px", fontSize: "12px"
+                                                            }}>{skill}</span>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setMatchResult(null)} style={{
+                                        backgroundColor: "transparent",
+                                        border: "1px solid rgba(255,255,255,0.08)",
+                                        color: "rgba(255,255,255,0.3)",
+                                        fontSize: "12px", padding: "4px 10px"
+                                    }}>Close</button>
+                                </div>
+                            )}
+
+                            {/* Inline Cover Letter */}
+                            {coverLetter?.jobSlug === job.slug && (
+                                <div style={{
+                                    backgroundColor: "rgba(167,139,250,0.03)",
+                                    border: "1px solid rgba(167,139,250,0.2)",
+                                    borderTop: "none",
+                                    borderRadius: "0 0 12px 12px",
+                                    padding: "18px 22px"
+                                }}>
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "14px" }}>
+                                        <p style={{ fontSize: "11px", color: "rgba(167,139,250,0.8)", textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: "600" }}>
+                                            Cover Letter
+                                        </p>
+                                        <div style={{ display: "flex", gap: "8px" }}>
+                                            <button
+                                                onClick={() => { navigator.clipboard.writeText(coverLetter.text); }}
+                                                style={{
+                                                    backgroundColor: "rgba(255,255,255,0.05)",
+                                                    border: "1px solid rgba(255,255,255,0.1)",
+                                                    color: "rgba(255,255,255,0.6)",
+                                                    padding: "4px 10px", fontSize: "12px"
+                                                }}>Copy</button>
+                                            <button
+                                                onClick={() => setCoverLetter(null)}
+                                                style={{
+                                                    backgroundColor: "transparent",
+                                                    border: "1px solid rgba(255,255,255,0.08)",
+                                                    color: "rgba(255,255,255,0.3)",
+                                                    fontSize: "12px", padding: "4px 10px"
+                                                }}>Close</button>
+                                        </div>
+                                    </div>
+                                    <textarea
+                                        value={coverLetter.text}
+                                        onChange={(e) => setCoverLetter({ ...coverLetter, text: e.target.value })}
+                                        rows={14}
+                                        style={{
+                                            width: "100%",
+                                            backgroundColor: "rgba(255,255,255,0.03)",
+                                            border: "1px solid rgba(255,255,255,0.07)",
+                                            color: "rgba(255,255,255,0.8)",
+                                            borderRadius: "8px",
+                                            padding: "14px",
+                                            fontSize: "14px",
+                                            lineHeight: "1.8",
+                                            resize: "vertical",
+                                            fontFamily: "Inter, sans-serif"
+                                        }}
+                                    />
+                                </div>
+                            )}
                         </div>
                     ))
                 )}

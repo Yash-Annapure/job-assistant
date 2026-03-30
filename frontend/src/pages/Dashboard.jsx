@@ -10,34 +10,25 @@ function Dashboard() {
     const [analysis, setAnalysis] = useState(null)
     const [message, setMessage] = useState("")
 
-    const handleLogout = () => {
-        localStorage.removeItem("token")
-        window.location.href = "/login"
-    }
-
     useEffect(() => {
-        const fetchUser = async () => {
-            const data = await getMe()
-            if (data) setUser(data)
-
-            const cvData  = await getCV()
+        const fetchData = async () => {
+            const userData = await getMe()
+            if (userData) setUser(userData)
+            const cvData = await getCV()
             if (cvData && cvData.id) setCv(cvData)
         }
-        fetchUser()
+        fetchData()
     }, [])
 
     const handleUploadCV = async () => {
-        if (!file) {
-            setMessage("Please select a file first")
-            return
-        }
+        if (!file) { setMessage("Please select a file first"); return }
         setUploading(true)
         const data = await uploadCV(file)
         setUploading(false)
         if (data && data.id) {
             setCv(data)
             setAnalysis(null)
-            setMessage("CV uploaded successfully!")
+            setMessage("CV uploaded successfully")
         } else {
             setMessage("Upload failed. Try again.")
         }
@@ -45,221 +36,200 @@ function Dashboard() {
 
     const handleDeleteCV = async () => {
         const data = await deleteCV()
-        if (data) {
-            setCv(null)
-            setFile(null)
-            setAnalysis(null)
-            setMessage("CV deleted.")
-        }
+        if (data) { setCv(null); setFile(null); setAnalysis(null); setMessage("") }
     }
 
     const handleAnalyzeCV = async () => {
-    setAnalyzing(true)
-    const data = await analyzeCV()
-    setAnalyzing(false)
-    if (data && data.skills) {
-        setAnalysis(data)
-        setMessage("")
-    } else if (data && data.detail && data.detail.includes("busy")) {
-        setMessage("AI service is busy — please wait a few seconds and try again.")
-    } else {
-        setMessage("Analysis failed. Make sure you have a CV uploaded.")
+        setAnalyzing(true)
+        const data = await analyzeCV()
+        setAnalyzing(false)
+        if (data && data.skills) {
+            setAnalysis(data)
+            setMessage("")
+        } else if (data && data.detail && data.detail.includes("busy")) {
+            setMessage("AI service is busy — please wait a few seconds and try again.")
+        } else {
+            setMessage("Analysis failed. Make sure you have a CV uploaded.")
+        }
     }
-}
+
+    const card = {
+        backgroundColor: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.08)",
+        borderRadius: "14px",
+        padding: "28px"
+    }
 
     return (
-        <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 24px" }}>
+        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
 
             {/* Header */}
-            <div style={{
-                backgroundColor: "#1a1a1a",
-                border: "1px solid #2a2a2a",
-                borderRadius: "12px",
-                padding: "32px",
-                marginBottom: "24px"
-            }}>
-                <h1 style={{ fontSize: "26px", marginBottom: "8px" }}>
-                    Welcome back, {user ? user.username : "..."} 👋
+            <div style={{ marginBottom: "32px", textAlign: "center" }}>
+                <h1 style={{
+                    fontSize: "26px",
+                    fontWeight: "600",
+                    letterSpacing: "-0.5px",
+                    marginBottom: "6px"
+                }}>
+                    Welcome back{user ? `, ${user.username}` : ""} 👋
                 </h1>
-                <p style={{ color: "#888", marginBottom: "24px", fontSize: "14px" }}>
+                <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px" }}>
                     Manage your CV and start matching jobs
                 </p>
-                <div style={{ display: "flex", gap: "12px" }}>
-                    <a href="/jobs" style={{
-                        backgroundColor: "#4f8ef7", color: "white",
-                        padding: "10px 20px", borderRadius: "6px", fontSize: "14px"
-                    }}>Search Jobs</a>
-                    <a href="/applications" style={{
-                        backgroundColor: "#2a2a2a", color: "#e8e8e8",
-                        padding: "10px 20px", borderRadius: "6px", fontSize: "14px"
-                    }}>My Applications</a>
-                    <button onClick={handleLogout} style={{
-                        backgroundColor: "transparent",
-                        border: "1px solid #2a2a2a",
-                        color: "#888", padding: "10px 20px",
-                        borderRadius: "6px", fontSize: "14px", cursor: "pointer"
-                    }}>Logout</button>
-                </div>
             </div>
 
             {/* CV Section */}
-            <div style={{
-                backgroundColor: "#1a1a1a",
-                border: "1px solid #2a2a2a",
-                borderRadius: "12px",
-                padding: "32px",
-                marginBottom: "24px"
-            }}>
-                <h2 style={{ fontSize: "18px", marginBottom: "8px" }}>Your CV</h2>
-                <p style={{ color: "#888", fontSize: "14px", marginBottom: "24px" }}>
-                    Upload your CV as PDF or DOCX — uploading a new CV replaces the existing one
-                </p>
+            <div style={{ ...card, marginBottom: "20px" }}>
+                <div style={{ marginBottom: "20px" }}>
+                    <h2 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "4px" }}>Your CV</h2>
+                    <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px" }}>
+                        Upload PDF or DOCX — uploading a new CV replaces the existing one
+                    </p>
+                </div>
 
                 {message && (
-                    <p style={{
-                        color: message.includes("failed") || message.includes("select") ? "#f87171" : "#4ade80",
-                        fontSize: "14px", marginBottom: "16px"
-                    }}>{message}</p>
+                    <div style={{
+                        padding: "10px 14px",
+                        borderRadius: "8px",
+                        fontSize: "13px",
+                        marginBottom: "16px",
+                        backgroundColor: message.includes("failed") || message.includes("select") || message.includes("busy")
+                            ? "rgba(248,113,113,0.08)" : "rgba(74,222,128,0.08)",
+                        border: `1px solid ${message.includes("failed") || message.includes("select") || message.includes("busy")
+                            ? "rgba(248,113,113,0.2)" : "rgba(74,222,128,0.2)"}`,
+                        color: message.includes("failed") || message.includes("select") || message.includes("busy")
+                            ? "#f87171" : "#4ade80"
+                    }}>{message}</div>
                 )}
 
                 {cv && (
                     <div style={{
-                        backgroundColor: "#0f0f0f",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "8px",
-                        padding: "16px",
-                        marginBottom: "16px",
                         display: "flex",
                         justifyContent: "space-between",
-                        alignItems: "center"
+                        alignItems: "center",
+                        padding: "12px 16px",
+                        backgroundColor: "rgba(74,222,128,0.05)",
+                        border: "1px solid rgba(74,222,128,0.15)",
+                        borderRadius: "9px",
+                        marginBottom: "16px"
                     }}>
                         <div>
-                            <p style={{ fontSize: "14px", color: "#4ade80" }}>✓ CV uploaded</p>
-                            <p style={{ fontSize: "12px", color: "#888", marginTop: "4px" }}>{cv.file_path}</p>
+                            <p style={{ fontSize: "13px", color: "#4ade80", marginBottom: "2px" }}>✓ CV uploaded</p>
+                            <p style={{ fontSize: "12px", color: "rgba(255,255,255,0.3)" }}>{cv.file_path?.split("/").pop()}</p>
                         </div>
                         <button onClick={handleDeleteCV} style={{
                             backgroundColor: "transparent",
-                            border: "1px solid #f87171",
+                            border: "1px solid rgba(248,113,113,0.3)",
                             color: "#f87171",
-                            padding: "6px 14px",
+                            padding: "5px 12px",
                             borderRadius: "6px",
-                            fontSize: "13px",
-                            cursor: "pointer"
+                            fontSize: "12px"
                         }}>Delete</button>
                     </div>
                 )}
 
                 <div style={{
-                    border: "2px dashed #2a2a2a",
-                    borderRadius: "8px",
-                    padding: "32px",
+                    border: "1px dashed rgba(255,255,255,0.1)",
+                    borderRadius: "10px",
+                    padding: "28px",
                     textAlign: "center",
-                    marginBottom: "16px"
+                    marginBottom: "16px",
+                    backgroundColor: "rgba(255,255,255,0.02)"
                 }}>
-                    <p style={{ color: "#888", fontSize: "14px", marginBottom: "16px" }}>
-                        📄 PDF or DOCX files supported
+                    <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px", marginBottom: "14px" }}>
+                        PDF or DOCX supported
                     </p>
                     <input
                         type="file"
                         accept=".pdf,.docx"
                         onChange={(e) => setFile(e.target.files[0])}
-                        style={{ color: "#e8e8e8", fontSize: "14px" }}
+                        style={{ color: "rgba(255,255,255,0.5)", fontSize: "13px", width: "auto" }}
                     />
                 </div>
 
-                <div style={{ display: "flex", gap: "12px" }}>
+                <div style={{ display: "flex", gap: "10px" }}>
                     <button onClick={handleUploadCV} disabled={uploading}
-                        style={{ opacity: uploading ? 0.6 : 1 }}>
+                        style={{ opacity: uploading ? 0.5 : 1, fontSize: "13px", padding: "9px 18px" }}>
                         {uploading ? "Uploading..." : "Upload CV"}
                     </button>
                     {cv && (
-                        <button
-                        onClick={handleAnalyzeCV}
-                        disabled={analyzing}
-                        style={{
-                            backgroundColor: "#2a2a2a",
-                            border: "1px solid #4f8ef7",
-                            color: "#4f8ef7",
-                            opacity: analyzing ? 0.6 : 1
+                        <button onClick={handleAnalyzeCV} disabled={analyzing} style={{
+                            backgroundColor: "transparent",
+                            border: "1px solid rgba(255,255,255,0.15)",
+                            color: "rgba(255,255,255,0.8)",
+                            fontSize: "13px",
+                            padding: "9px 18px",
+                            opacity: analyzing ? 0.5 : 1
                         }}>
-                        {analyzing ? "Analyzing... (may take up to 20s)" : "Analyze CV"}
-                    </button>
+                            {analyzing ? "Analyzing..." : "Analyze CV"}
+                        </button>
                     )}
                 </div>
             </div>
 
             {/* Analysis Results */}
-{analysis && (
-    <div style={{
-        backgroundColor: "#1a1a1a",
-        border: "1px solid #2a2a2a",
-        borderRadius: "12px",
-        padding: "32px"
-    }}>
-        <h2 style={{ fontSize: "18px", marginBottom: "24px" }}>📊 CV Analysis</h2>
+            {analysis && (
+                <div style={card}>
+                    <h2 style={{ fontSize: "15px", fontWeight: "600", marginBottom: "20px" }}>CV Analysis</h2>
 
-        {/* Stats row */}
-        <div style={{ display: "flex", gap: "16px", marginBottom: "28px" }}>
-            <div style={{
-                flex: 1, backgroundColor: "#0f0f0f",
-                border: "1px solid #2a2a2a", borderRadius: "10px", padding: "20px"
-            }}>
-                <p style={{ color: "#888", fontSize: "12px", marginBottom: "8px" }}>SKILLS DETECTED</p>
-                <p style={{ fontSize: "28px", fontWeight: "bold", color: "#4f8ef7" }}>{analysis.skills.length}</p>
-            </div>
-            <div style={{
-                flex: 1, backgroundColor: "#0f0f0f",
-                border: "1px solid #2a2a2a", borderRadius: "10px", padding: "20px"
-            }}>
-                <p style={{ color: "#888", fontSize: "12px", marginBottom: "8px" }}>YEARS OF EXPERIENCE</p>
-                <p style={{ fontSize: "28px", fontWeight: "bold", color: "#4ade80" }}>{analysis.years_of_experience}</p>
-            </div>
-            <div style={{
-                flex: 1, backgroundColor: "#0f0f0f",
-                border: "1px solid #2a2a2a", borderRadius: "10px", padding: "20px"
-            }}>
-                <p style={{ color: "#888", fontSize: "12px", marginBottom: "8px" }}>EDUCATION</p>
-                <p style={{ fontSize: "14px", fontWeight: "bold", color: "#e8e8e8" }}>
-                    {analysis.education.length} degree{analysis.education.length > 1 ? "s" : ""}
-                </p>
-            </div>
-        </div>
+                    <div style={{ display: "flex", gap: "12px", marginBottom: "24px" }}>
+                        {[
+                            { label: "Skills Detected", value: analysis.skills.length, color: "#a78bfa" },
+                            { label: "Experience", value: analysis.years_of_experience, color: "#4ade80" },
+                            { label: "Degrees", value: `${analysis.education.length}`, color: "#4f8ef7" }
+                        ].map((stat, i) => (
+                            <div key={i} style={{
+                                flex: 1,
+                                backgroundColor: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                borderRadius: "10px",
+                                padding: "16px"
+                            }}>
+                                <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", marginBottom: "8px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                                    {stat.label}
+                                </p>
+                                <p style={{ fontSize: "24px", fontWeight: "600", color: stat.color }}>{stat.value}</p>
+                            </div>
+                        ))}
+                    </div>
 
-        {/* Skills */}
-        <div style={{ marginBottom: "24px" }}>
-            <p style={{ color: "#888", fontSize: "13px", marginBottom: "12px" }}>🛠 TECHNICAL SKILLS</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                {analysis.skills.map((skill, i) => (
-                    <span key={i} style={{
-                        backgroundColor: "#0f0f0f",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "6px",
-                        padding: "5px 12px",
-                        fontSize: "13px",
-                        color: "#e8e8e8"
-                    }}>{skill}</span>
-                ))}
-            </div>
-        </div>
+                    <div style={{ marginBottom: "20px" }}>
+                        <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
+                            Technical Skills
+                        </p>
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: "7px" }}>
+                            {analysis.skills.map((skill, i) => (
+                                <span key={i} style={{
+                                    backgroundColor: "rgba(255,255,255,0.05)",
+                                    border: "1px solid rgba(255,255,255,0.08)",
+                                    borderRadius: "6px",
+                                    padding: "4px 11px",
+                                    fontSize: "13px",
+                                    color: "rgba(255,255,255,0.7)"
+                                }}>{skill}</span>
+                            ))}
+                        </div>
+                    </div>
 
-        {/* Education */}
-        <div>
-            <p style={{ color: "#888", fontSize: "13px", marginBottom: "12px" }}>🎓 EDUCATION</p>
-            {analysis.education.map((edu, i) => (
-                <div key={i} style={{
-                    backgroundColor: "#0f0f0f",
-                    border: "1px solid #2a2a2a",
-                    borderRadius: "8px",
-                    padding: "14px 16px",
-                    marginBottom: "8px",
-                    fontSize: "14px"
-                }}>{edu}</div>
-            ))}
+                    <div>
+                        <p style={{ color: "rgba(255,255,255,0.35)", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px", marginBottom: "12px" }}>
+                            Education
+                        </p>
+                        {analysis.education.map((edu, i) => (
+                            <div key={i} style={{
+                                backgroundColor: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.06)",
+                                borderRadius: "8px",
+                                padding: "12px 14px",
+                                marginBottom: "8px",
+                                fontSize: "14px",
+                                color: "rgba(255,255,255,0.7)"
+                            }}>{edu}</div>
+                        ))}
+                    </div>
+                </div>
+            )}
         </div>
-    </div>
-)
-}
-    </div>
     )
 }
 

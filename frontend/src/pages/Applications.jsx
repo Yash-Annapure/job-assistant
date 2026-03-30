@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react"
 import { getApplications, updateApplication, deleteApplication } from "../api"
 
-const statusColors = {
-    applied: { bg: "#2a2000", border: "#facc15", color: "#facc15" },
-    interviewing: { bg: "#001a2a", border: "#4f8ef7", color: "#4f8ef7" },
-    offered: { bg: "#002a00", border: "#4ade80", color: "#4ade80" },
-    rejected: { bg: "#2a0000", border: "#f87171", color: "#f87171" }
+const statusConfig = {
+    applied: { bg: "rgba(250,204,21,0.08)", border: "rgba(250,204,21,0.25)", color: "#facc15" },
+    interviewing: { bg: "rgba(79,142,247,0.08)", border: "rgba(79,142,247,0.25)", color: "#4f8ef7" },
+    offered: { bg: "rgba(74,222,128,0.08)", border: "rgba(74,222,128,0.25)", color: "#4ade80" },
+    rejected: { bg: "rgba(248,113,113,0.08)", border: "rgba(248,113,113,0.25)", color: "#f87171" }
 }
 
 function Applications() {
@@ -16,11 +16,7 @@ function Applications() {
     useEffect(() => {
         const fetchApplications = async () => {
             const data = await getApplications()
-            if (Array.isArray(data)) {
-                setApplications(data)
-            } else {
-                setApplications([])
-            }
+            setApplications(Array.isArray(data) ? data : [])
             setLoading(false)
         }
         fetchApplications()
@@ -29,128 +25,171 @@ function Applications() {
     const handleStatusChange = async (id, newStatus, notes) => {
         const data = await updateApplication(id, newStatus, notes)
         if (data && data.id) {
-            setApplications(prev =>
-                prev.map(app => app.id === id ? { ...app, status: newStatus } : app)
-            )
+            setApplications(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app))
         }
         setOpenDropdown(null)
     }
 
-    const handleDeleteApplication = async (id) => {
+    const handleDelete = async (id) => {
         const data = await deleteApplication(id)
-        if (data) {
-            setApplications(prev => prev.filter(app => app.id !== id))
-        }
+        if (data) setApplications(prev => prev.filter(app => app.id !== id))
+        setOpenDropdown(null)
     }
 
     return (
-        <div style={{ maxWidth: "900px", margin: "40px auto", padding: "0 24px" }}>
-            <h1 style={{ fontSize: "28px", marginBottom: "8px" }}>My Applications</h1>
-            <p style={{ color: "#888", marginBottom: "32px", fontSize: "14px" }}>
-                Track your job application progress
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                {loading ? (
-                    <p style={{ color: "#888" }}>Loading...</p>
-                ) : applications.length === 0 ? (
-                    <div style={{
-                        backgroundColor: "#1a1a1a",
-                        border: "1px solid #2a2a2a",
-                        borderRadius: "10px",
-                        padding: "40px",
-                        textAlign: "center"
-                    }}>
-                        <p style={{ color: "#888" }}>No applications yet.</p>
-                        <a href="/jobs" style={{ color: "#4f8ef7", fontSize: "14px" }}>
-                            Start searching for jobs →
-                        </a>
-                    </div>
-                ) : (
-                    applications.map(app => {
-                        const colors = statusColors[app.status] || statusColors.applied
+        <div style={{ maxWidth: "860px", margin: "0 auto" }}>
+
+            {/* Header */}
+            <div style={{ marginBottom: "28px", textAlign: "center" }}>
+                <h1 style={{ fontSize: "26px", fontWeight: "600", letterSpacing: "-0.5px", marginBottom: "6px" }}>
+                    Applications
+                </h1>
+                <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px" }}>
+                    Track your job application progress
+                </p>
+            </div>
+
+            {loading ? (
+                <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "14px", textAlign: "center" }}>Loading...</p>
+            ) : applications.length === 0 ? (
+                <div style={{
+                    backgroundColor: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: "14px",
+                    padding: "56px",
+                    textAlign: "center"
+                }}>
+                    <p style={{ color: "rgba(255,255,255,0.3)", marginBottom: "12px", fontSize: "15px" }}>No applications yet</p>
+                    <a href="/jobs" style={{
+                        fontSize: "13px",
+                        color: "rgba(255,255,255,0.5)",
+                        border: "1px solid rgba(255,255,255,0.1)",
+                        padding: "7px 16px",
+                        borderRadius: "7px",
+                        display: "inline-block"
+                    }}>Browse jobs →</a>
+                </div>
+            ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    {applications.map(app => {
+                        const config = statusConfig[app.status] || statusConfig.applied
                         return (
                             <div key={app.id} style={{
-                                backgroundColor: "#1a1a1a",
-                                border: "1px solid #2a2a2a",
-                                borderRadius: "10px",
-                                padding: "20px 24px"
+                                backgroundColor: "rgba(255,255,255,0.03)",
+                                border: "1px solid rgba(255,255,255,0.07)",
+                                borderRadius: "12px",
+                                padding: "16px 20px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "space-between",
+                                gap: "16px"
                             }}>
-                                {/* Job title + date + remove button */}
-                                <div style={{
-                                    display: "flex",
-                                    justifyContent: "space-between",
-                                    alignItems: "center",
-                                    marginBottom: "16px"
-                                }}>
-                                    <p style={{ fontSize: "15px", fontWeight: "bold" }}>
-                                        {app.notes || "Job Application"}
+                                {/* Job info */}
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                    <p style={{
+                                        fontSize: "14px", fontWeight: "500", marginBottom: "3px",
+                                        overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap"
+                                    }}>{app.notes || "Job Application"}</p>
+                                    <p style={{ color: "rgba(255,255,255,0.3)", fontSize: "12px" }}>
+                                        {new Date(app.applied_at).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
                                     </p>
-                                    <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                                        <span style={{ color: "#888", fontSize: "13px" }}>
-                                            {new Date(app.applied_at).toLocaleDateString()}
-                                        </span>
-                                        <button
-                                            onClick={() => handleDeleteApplication(app.id)}
-                                            style={{
-                                                backgroundColor: "transparent",
-                                                border: "1px solid #f87171",
-                                                color: "#f87171",
-                                                padding: "3px 10px",
-                                                borderRadius: "6px",
-                                                fontSize: "12px",
-                                                cursor: "pointer"
-                                            }}>
-                                            Remove
-                                        </button>
-                                    </div>
                                 </div>
 
-                                {/* Status badge + dropdown */}
-                                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                    {/* Status Badge */}
                                     <span
-                                        onClick={() => setOpenDropdown(openDropdown === app.id ? null : app.id)}
+                                        onClick={() => setOpenDropdown(openDropdown === `status-${app.id}` ? null : `status-${app.id}`)}
                                         style={{
-                                            backgroundColor: colors.bg,
-                                            border: `1px solid ${colors.border}`,
-                                            color: colors.color,
-                                            padding: "4px 14px",
+                                            backgroundColor: config.bg,
+                                            border: `1px solid ${config.border}`,
+                                            color: config.color,
+                                            padding: "4px 12px",
                                             borderRadius: "20px",
-                                            fontSize: "13px",
+                                            fontSize: "12px",
                                             fontWeight: "500",
                                             textTransform: "capitalize",
                                             cursor: "pointer",
-                                            userSelect: "none"
-                                        }}
-                                    >
+                                            userSelect: "none",
+                                            whiteSpace: "nowrap"
+                                        }}>
                                         {app.status} ✎
                                     </span>
-                                    {openDropdown === app.id && (
+
+                                    {/* Status Dropdown */}
+                                    {openDropdown === `status-${app.id}` && (
                                         <select
                                             value={app.status}
                                             onChange={(e) => handleStatusChange(app.id, e.target.value, app.notes)}
                                             style={{
-                                                backgroundColor: "#0f0f0f",
-                                                border: "1px solid #2a2a2a",
-                                                color: "#888",
-                                                borderRadius: "6px",
-                                                padding: "4px 10px",
-                                                fontSize: "13px",
+                                                backgroundColor: "#111",
+                                                border: "1px solid rgba(255,255,255,0.1)",
+                                                color: "rgba(255,255,255,0.7)",
+                                                borderRadius: "7px",
+                                                padding: "5px 10px",
+                                                fontSize: "12px",
                                                 cursor: "pointer",
                                                 width: "auto"
-                                            }}
-                                        >
+                                            }}>
                                             <option value="applied">Applied</option>
                                             <option value="interviewing">Interviewing</option>
                                             <option value="offered">Offered</option>
                                             <option value="rejected">Rejected</option>
                                         </select>
                                     )}
+
+                                    {/* Three dots menu */}
+                                    <div style={{ position: "relative" }}>
+                                        <button
+                                            onClick={() => setOpenDropdown(openDropdown === `menu-${app.id}` ? null : `menu-${app.id}`)}
+                                            style={{
+                                                backgroundColor: "transparent",
+                                                border: "none",
+                                                color: "rgba(255,255,255,0.3)",
+                                                fontSize: "18px",
+                                                padding: "4px 8px",
+                                                cursor: "pointer",
+                                                letterSpacing: "1px",
+                                                lineHeight: "1"
+                                            }}>⋮</button>
+
+                                        {openDropdown === `menu-${app.id}` && (
+                                            <div style={{
+                                                position: "absolute",
+                                                right: "0",
+                                                top: "100%",
+                                                backgroundColor: "#111",
+                                                border: "1px solid rgba(255,255,255,0.1)",
+                                                borderRadius: "8px",
+                                                padding: "4px",
+                                                zIndex: 50,
+                                                minWidth: "120px",
+                                                boxShadow: "0 8px 32px rgba(0,0,0,0.4)"
+                                            }}>
+                                                <button
+                                                    onClick={() => handleDelete(app.id)}
+                                                    style={{
+                                                        backgroundColor: "transparent",
+                                                        border: "none",
+                                                        color: "#f87171",
+                                                        padding: "8px 12px",
+                                                        fontSize: "13px",
+                                                        cursor: "pointer",
+                                                        width: "100%",
+                                                        textAlign: "left",
+                                                        borderRadius: "5px"
+                                                    }}
+                                                    onMouseEnter={e => e.currentTarget.style.backgroundColor = "rgba(248,113,113,0.08)"}
+                                                    onMouseLeave={e => e.currentTarget.style.backgroundColor = "transparent"}
+                                                >Remove</button>
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )
-                    })
-                )}
-            </div>
+                    })}
+                </div>
+            )}
         </div>
     )
 }

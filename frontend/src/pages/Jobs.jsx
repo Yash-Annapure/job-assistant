@@ -16,11 +16,16 @@ function Jobs() {
         setJobs(data)
     }
 
-    const filteredJobs = jobs.filter(job =>
-        location === "" ||
-        query.toLowerCase().split(" ").some(word => job.title.toLowerCase().includes(word)) ||
-        job.location.toLowerCase().includes(location.toLowerCase())
-    )
+    const filteredJobs = jobs.filter(job => {
+        const matchesLocation = location === "" ||
+            job.location.toLowerCase().includes(location.toLowerCase())
+        return matchesLocation
+    }).sort((a, b) => {
+        const queryWords = query.toLowerCase().split(" ")
+        const aScore = queryWords.filter(w => a.title.toLowerCase().includes(w)).length
+        const bScore = queryWords.filter(w => b.title.toLowerCase().includes(w)).length
+        return bScore - aScore
+    })
 
     const handleMatchCV = async (job) => {
         setMatchingJob(job.slug)

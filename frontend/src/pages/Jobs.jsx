@@ -4,7 +4,10 @@ import { searchJob, matchCV, createApplication, saveJob, generateCoverLetter } f
 function Jobs() {
     const [query, setQuery] = useState("")
     const [location, setLocation] = useState("")
-    const [jobs, setJobs] = useState([])
+    const [jobs, setJobs] = useState(() => {
+    const cached = localStorage.getItem("cachedJobs")
+    return cached ? JSON.parse(cached) : []
+    })
     const [matchResult, setMatchResult] = useState(null)
     const [matchingJob, setMatchingJob] = useState(null)
     const [coverLetter, setCoverLetter] = useState(null)
@@ -12,8 +15,12 @@ function Jobs() {
     const [trackMessage, setTrackMessage] = useState(null)
 
     const handleSearch = async () => {
-        const data = await searchJob(query, location)
-        setJobs(data)
+    const data = await searchJob(query, location)
+    setJobs(data)
+    // cache the results
+    localStorage.setItem("cachedJobs", JSON.stringify(data))
+    localStorage.setItem("lastQuery", query)
+    localStorage.setItem("lastLocation", location)
     }
 
     const filteredJobs = jobs.filter(job => {
@@ -99,12 +106,69 @@ function Jobs() {
                 display: "flex",
                 gap: "10px"
             }}>
-                <input onChange={(e) => setQuery(e.target.value)} placeholder="Role or keywords" style={{ flex: 2 }} />
-                <input onChange={(e) => setLocation(e.target.value)} placeholder="Location" style={{ flex: 1 }} />
+                <input 
+                    defaultValue={localStorage.getItem("lastQuery") || ""}
+                    onChange={(e) => {
+                        setQuery(e.target.value)
+                        if (e.target.value === "") {
+                            setJobs([])
+                            setMatchResult(null)
+                            setCoverLetter(null)
+                            setTrackMessage(null)
+                            localStorage.removeItem("cachedJobs")
+                            localStorage.removeItem("lastQuery")
+                        }
+                    }} 
+                    placeholder="Role or keywords" 
+                    style={{ flex: 2 }} 
+                />
+                <input 
+                    defaultValue={localStorage.getItem("lastLocation") || ""}
+                    onChange={(e) => {
+                        setLocation(e.target.value)
+                        if (e.target.value === "") {
+                            localStorage.removeItem("lastLocation")
+                        }
+                    }} 
+                    placeholder="Location" 
+                    style={{ flex: 1 }} 
+                />
                 <button onClick={handleSearch} style={{ width: "auto", padding: "10px 20px", fontSize: "13px", whiteSpace: "nowrap" }}>
                     Search
                 </button>
             </div>
+            {/* SAP Featured Section */}
+                <div style={{
+                    backgroundColor: "rgba(79,142,247,0.05)",
+                    border: "1px solid rgba(79,142,247,0.2)",
+                    borderRadius: "12px",
+                    padding: "16px 20px",
+                    marginBottom: "24px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center"
+                }}>
+                    <div>
+                        <p style={{ fontSize: "14px", fontWeight: "500", marginBottom: "4px" }}>
+                            🎯 Looking for SAP Werkstudent positions?
+                        </p>
+                        <p style={{ color: "rgba(255,255,255,0.75)", fontSize: "13px" }}>
+                            Browse directly on SAP's official careers portal
+                        </p>
+                    </div>
+                    <a href="https://jobs.sap.com/"
+                        target="_blank" rel="noreferrer"
+                        style={{
+                            backgroundColor: "#4f8ef7",
+                            color: "white",
+                            padding: "8px 16px",
+                            borderRadius: "7px",
+                            fontSize: "13px",
+                            whiteSpace: "nowrap"
+                        }}>
+                        View SAP Jobs →
+                    </a>
+                </div>
 
             {/* Results */}
             <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>

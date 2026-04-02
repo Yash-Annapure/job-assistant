@@ -30,7 +30,7 @@ export const registerUser = async (username, email, password) => {
 }
 
 export const searchJob = async (query,location) =>{
-    const response = await fetch(`${API_URL}/jobs/search?query=${query}&location=${location}`,{
+    const response = await fetch(`${API_URL}/jobs/search?query=${query}&location=${location}&limit=100`,{
         method : "GET",
         headers : {"Content-Type": "application/json"},
         })

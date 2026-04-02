@@ -216,16 +216,18 @@ function Dashboard() {
                             Education
                         </p>
                         {analysis.education.map((edu, i) => (
-                            <div key={i} style={{
-                                backgroundColor: "rgba(255,255,255,0.03)",
-                                border: "1px solid rgba(255,255,255,0.06)",
-                                borderRadius: "8px",
-                                padding: "12px 14px",
-                                marginBottom: "8px",
-                                fontSize: "14px",
-                                color: "rgba(255,255,255,0.7)"
-                            }}>{edu}</div>
-                        ))}
+                        <div key={i} style={{
+                            backgroundColor: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.06)",
+                            borderRadius: "8px",
+                            padding: "12px 14px",
+                            marginBottom: "8px",
+                            fontSize: "14px",
+                            color: "rgba(255,255,255,0.7)"
+                        }}>
+                            {typeof edu === "string" ? edu : `${edu.degree || ""} ${edu.institution || ""} ${edu.dates || ""}`.trim()}
+                        </div>
+                    ))}
                     </div>
                 </div>
             )}

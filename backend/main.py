@@ -11,6 +11,8 @@ from api import jobs
 from api import applications
 from api import users
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_mcp import FastApiMCP
+import mcp_server
 
 load_dotenv()
 
@@ -43,6 +45,10 @@ app.include_router(users.router,prefix="/users",tags=["/users"])
 @app.get("/health")
 async def health_check():
     return {"status":"ok"}
+
+# MCP server instance which exposes existing FastAPI routes as MCP tools
+mcp_server = FastApiMCP(app)
+mcp_server.mount() # ← mounts at /mcp by default
 
 
 '''

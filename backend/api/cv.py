@@ -12,6 +12,7 @@ import PyPDF2
 import docx
 import io
 import json
+import os
 
 # #user_id: int   no need for user_id as the get current user takes it automatically from the token
 # class CV_input(BaseModel):
@@ -29,12 +30,19 @@ async def upload_cv(
     content = await file.read()
     raw_text = ""
 
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(400, "File size exceeds 5MB limit")
+
     if file.filename.endswith(".pdf"):
+        if not content.startswith(b'%PDF'):
+            raise HTTPException(400, "Invalid file content")
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
         for page in pdf_reader.pages:
             raw_text += page.extract_text()
 
     elif file.filename.endswith(".docx"):
+        if not content.startswith(b'PK\x03\x04'):
+            raise HTTPException(400, "Invalid file content")
         doc = docx.Document(io.BytesIO(content))
         for para in doc.paragraphs:
             raw_text += para.text + "\n"
@@ -50,7 +58,7 @@ async def upload_cv(
     db_cv = models.CV(
         user_id=current_user.id,
         raw_text=raw_text,
-        file_path=f"/uploads/{file.filename}"
+        file_path=f"/uploads/{os.path.basename(file.filename)}"
     )
     db.add(db_cv)
     db.commit()

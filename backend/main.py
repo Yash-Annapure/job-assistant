@@ -12,6 +12,10 @@ from api import applications
 from api import users
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP
+from starlette.requests import Request
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 import mcp_server
 
 load_dotenv()
@@ -26,15 +30,28 @@ async def lifespan(app: FastAPI):
     create_db_and_tables() #startup
     yield
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(lifespan=lifespan)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
 #had to add this for CORS policy error workoaround, since the frontend is running on a different port than the backend, the browser blocks the requests due to CORS policy. This middleware allows requests from the specified origin (in this case, the React dev server) to access the backend API.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"], #react dev server
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    return response
 
 app.include_router(cv_router, prefix="/cv", tags=["cv"])
 app.include_router(auth.router, prefix="/auth",tags=["auth"])

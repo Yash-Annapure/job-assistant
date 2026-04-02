@@ -5,9 +5,10 @@ import httpx
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Query
 from db.models import Joblisting
 from auth_utils import get_current_user
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from ml.job_matcher import match_cv_to_job
 from db.models import Joblisting
 from db.models import CV
@@ -20,7 +21,7 @@ import asyncio
 router = APIRouter()
 
 @router.get("/search")
-async def search_jobs(query: str, location: str = None, limit: int = 20):
+async def search_jobs(query: str = Query(..., max_length=100), location: str = Query(None, max_length=100), limit: int = Query(20, ge=1, le=100), current_user = Depends(get_current_user)):
     async with httpx.AsyncClient() as client:
         params = {"q": query}
         if location:
@@ -68,7 +69,7 @@ class JobInput(BaseModel):
     url: str
 
 class JobMatchInput(BaseModel):
-    job_description: str
+    job_description: str = Field(..., max_length=10000)
 
 @router.post("/save")
 async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(get_current_user)):

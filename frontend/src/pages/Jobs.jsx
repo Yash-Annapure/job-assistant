@@ -17,10 +17,17 @@ function Jobs() {
 
     const handleSearch = async () => {
     const data = await searchJob(query, location)
-    setJobs(data)
+        // deduplicate by slug
+        const seen = new Set()
+        const unique = data.filter(job => {
+            if (seen.has(job.slug)) return false
+            seen.add(job.slug)
+            return true
+        })
+    setJobs(unique)
     setVisibleCount(20)
     // cache the results
-    localStorage.setItem("cachedJobs", JSON.stringify(data))
+    localStorage.setItem("cachedJobs", JSON.stringify(unique))
     localStorage.setItem("lastQuery", query)
     localStorage.setItem("lastLocation", location)
     }
@@ -43,7 +50,8 @@ function Jobs() {
     const filteredJobs = jobs.filter(job => {
         const matchesLocation = location === "" ||
             (job.location || "").toLowerCase().includes(location.toLowerCase())
-        return matchesLocation
+        const hasScore = scoreJob(job) > 0
+        return matchesLocation && hasScore
     }).sort((a, b) => scoreJob(b) - scoreJob(a))
 
     const handleMatchCV = async (job) => {

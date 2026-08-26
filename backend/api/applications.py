@@ -4,12 +4,15 @@ from db.database import get_db
 from auth_utils import get_current_user
 from pydantic import BaseModel
 from db.models import Application
+from typing import Literal
 
 router = APIRouter()
 
+Status = Literal["applied", "interviewing", "offered", "rejected"]
+
 class Applications(BaseModel):
     job_id : int
-    status : str
+    status : Status
     notes: str
 
 @router.post("/create")
@@ -28,7 +31,7 @@ async def get_applications(db = Depends(get_db), current_user = Depends(get_curr
     return existing_application
 
 class ApplicationUpdate(BaseModel):
-    status: str = None
+    status: Status = None
     notes: str = None
 
 @router.patch("/{id}")

@@ -79,7 +79,7 @@ function Jobs() {
 
     const handleSaveApplication = async (job) => {
         const savedJob = await saveJob({
-            title: job.title, company: job.company_name,
+            title: job.title, company: job.company,
             description: job.description, url: job.url
         })
         if (savedJob && savedJob.id) {

@@ -25,7 +25,7 @@ async def parse_cv(cv_text: str) -> dict:
     cleaned = clean_cv_text(cv_text)
     llm = LLMService()
     response = await llm.send_prompt(
-    f"Extract from this CV: {cleaned[:2000]}\n"
+    f"Extract from this CV: {cleaned[:5000]}\n"
     f"Return ONLY valid JSON with these fields:\n"
     f'{{"skills": [], "years_of_experience": "string", "education": [], "job_titles": []}}\n'
     f"If a field is missing return 'not listed'. No markdown, no explanation."

@@ -53,7 +53,7 @@ async def search_jobs(query: str = Query(..., max_length=100), location: str = Q
                                 "location": job.get("location"),
                                 "url": job.get("url"),
                                 "slug": slug,
-                                "description": job.get("description", "")[:200],
+                                "description": job.get("description", "")[:3000],
                                 "tags": job.get("tags", []),
                                 "remote": job.get("remote", False),
                             })
@@ -104,6 +104,9 @@ async def match_cv(input: JobMatchInput, db = Depends(get_db), current_user = De
     else:
         parsed = await parse_cv(get_cv.raw_text)
         skills = parsed.get("skills", [])
+        # cache it so next call is instant
+        get_cv.parsed_skills = json.dumps(skills)
+        db.commit()
     result = await match_cv_to_job(get_cv.raw_text, input.job_description, skills)
     return result
 

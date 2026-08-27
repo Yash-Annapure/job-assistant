@@ -8,6 +8,11 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    # Dummy values: tests mock the DB session, these only satisfy the import-time
+    # checks in auth_utils.py and db/database.py. Not real credentials.
+    env:
+      SECRET_KEY: ci-not-a-real-secret
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     defaults:
       run:
         working-directory: backend

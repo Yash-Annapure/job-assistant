@@ -16,7 +16,6 @@ from starlette.requests import Request
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from rate_limiter import limiter
-import mcp_server
 
 load_dotenv()
 
@@ -64,7 +63,7 @@ async def health_check():
 
 # MCP server instance which exposes existing FastAPI routes as MCP tools
 mcp_server = FastApiMCP(app)
-mcp_server.mount() # ← mounts at /mcp by default
+mcp_server.mount_http() # streamable HTTP at /mcp; forwards the client's Authorization header into each tool call
 
 
 '''

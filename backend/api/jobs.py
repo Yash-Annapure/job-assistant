@@ -2,7 +2,7 @@
 from ml.cv_parser import parse_cv
 from db.database import get_db
 import httpx
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi import Query
@@ -17,11 +17,13 @@ from ml.cover_letter import generate_cover_letter
 from ml.llm_service import LLMService
 import json
 import asyncio
+from rate_limiter import limiter
 
 router = APIRouter()
 
 @router.get("/search")
-async def search_jobs(query: str = Query(..., max_length=100), location: str = Query(None, max_length=100), limit: int = Query(20, ge=1, le=100), current_user = Depends(get_current_user)):
+@limiter.limit("20/minute")
+async def search_jobs(request: Request, query: str = Query(..., max_length=100), location: str = Query(None, max_length=100), limit: int = Query(20, ge=1, le=100), current_user = Depends(get_current_user)):
     async with httpx.AsyncClient() as client:
         params = {"q": query}
         if location:
@@ -95,7 +97,8 @@ async def save_jobs(job: JobInput, db = Depends(get_db), current_user = Depends(
     return db_jobs
 
 @router.post("/match")
-async def match_cv(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def match_cv(request: Request, input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
         raise HTTPException(404, "No CV found")
@@ -120,7 +123,8 @@ async def match_cv(input: JobMatchInput, db = Depends(get_db), current_user = De
 #     return interview_prep_questions
 
 @router.post("/cover-letter")
-async def cover_letter(input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def cover_letter(request: Request, input: JobMatchInput, db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
         raise HTTPException(404,"Item not found")

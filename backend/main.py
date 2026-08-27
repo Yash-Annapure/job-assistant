@@ -13,9 +13,9 @@ from api import users
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP
 from starlette.requests import Request
-from slowapi import Limiter, _rate_limit_exceeded_handler
-from slowapi.util import get_remote_address
+from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
+from rate_limiter import limiter
 import mcp_server
 
 load_dotenv()
@@ -30,7 +30,6 @@ async def lifespan(app: FastAPI):
     create_db_and_tables() #startup
     yield
 
-limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)

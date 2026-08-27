@@ -1,6 +1,6 @@
 # CV upload & parsing routes
 from db import models
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException,Request
 from fastapi import Depends,UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -13,6 +13,7 @@ import docx
 import io
 import json
 import os
+from rate_limiter import limiter
 
 # #user_id: int   no need for user_id as the get current user takes it automatically from the token
 # class CV_input(BaseModel):
@@ -22,7 +23,9 @@ import os
 router = APIRouter()
 
 @router.post("/upload")
+@limiter.limit("10/minute")
 async def upload_cv(
+    request: Request,
     file: UploadFile = File(...),
     db = Depends(get_db),
     current_user = Depends(get_current_user)
@@ -69,7 +72,8 @@ async def upload_cv(
 import json
 
 @router.post("/analyze")
-async def analyze_cv(db = Depends(get_db), current_user = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def analyze_cv(request: Request, db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
         raise HTTPException(404, "Item not found")

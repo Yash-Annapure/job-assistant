@@ -6,10 +6,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from auth_utils import hash_password,verify_password,create_access_token
 from db.models import User
 from db.database import get_db
-from slowapi import Limiter
-from slowapi.util import get_remote_address
-
-limiter = Limiter(key_func=get_remote_address)
+from rate_limiter import limiter
 
 router = APIRouter()
 

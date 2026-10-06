@@ -1,6 +1,6 @@
 # CV upload & parsing routes
 from db import models
-from fastapi import APIRouter,HTTPException
+from fastapi import APIRouter,HTTPException,Request
 from fastapi import Depends,UploadFile, File
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
@@ -12,6 +12,8 @@ import PyPDF2
 import docx
 import io
 import json
+import os
+from rate_limiter import limiter
 
 # #user_id: int   no need for user_id as the get current user takes it automatically from the token
 # class CV_input(BaseModel):
@@ -21,7 +23,9 @@ import json
 router = APIRouter()
 
 @router.post("/upload")
+@limiter.limit("10/minute")
 async def upload_cv(
+    request: Request,
     file: UploadFile = File(...),
     db = Depends(get_db),
     current_user = Depends(get_current_user)
@@ -29,12 +33,19 @@ async def upload_cv(
     content = await file.read()
     raw_text = ""
 
+    if len(content) > 5 * 1024 * 1024:
+        raise HTTPException(400, "File size exceeds 5MB limit")
+
     if file.filename.endswith(".pdf"):
+        if not content.startswith(b'%PDF'):
+            raise HTTPException(400, "Invalid file content")
         pdf_reader = PyPDF2.PdfReader(io.BytesIO(content))
         for page in pdf_reader.pages:
             raw_text += page.extract_text()
 
     elif file.filename.endswith(".docx"):
+        if not content.startswith(b'PK\x03\x04'):
+            raise HTTPException(400, "Invalid file content")
         doc = docx.Document(io.BytesIO(content))
         for para in doc.paragraphs:
             raw_text += para.text + "\n"
@@ -50,7 +61,7 @@ async def upload_cv(
     db_cv = models.CV(
         user_id=current_user.id,
         raw_text=raw_text,
-        file_path=f"/uploads/{file.filename}"
+        file_path=f"/uploads/{os.path.basename(file.filename)}"
     )
     db.add(db_cv)
     db.commit()
@@ -61,7 +72,8 @@ async def upload_cv(
 import json
 
 @router.post("/analyze")
-async def analyze_cv(db = Depends(get_db), current_user = Depends(get_current_user)):
+@limiter.limit("10/minute")
+async def analyze_cv(request: Request, db = Depends(get_db), current_user = Depends(get_current_user)):
     get_cv = db.query(CV).filter(CV.user_id == current_user.id).first()
     if not get_cv:
         raise HTTPException(404, "Item not found")

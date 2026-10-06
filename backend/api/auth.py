@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 from fastapi import Depends
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
@@ -6,6 +6,7 @@ from pydantic import BaseModel, EmailStr, field_validator
 from auth_utils import hash_password,verify_password,create_access_token
 from db.models import User
 from db.database import get_db
+from rate_limiter import limiter
 
 router = APIRouter()
 
@@ -34,9 +35,16 @@ class UserLogin(BaseModel):
     email : EmailStr
     password : str
 
+    @field_validator("password")
+    def validate_password(cls, value):
+        if len(value) > 72:
+            raise ValueError("Password too long")
+        return value
+
 
 @router.post("/register")
-def register_user(auth:UserRegistor, db = Depends(get_db)):
+@limiter.limit("10/minute")
+def register_user(request: Request, auth:UserRegistor, db = Depends(get_db)):
     
     existing_user = db.query(User).filter(User.email == auth.email).first()
     if existing_user:
@@ -55,7 +63,8 @@ def register_user(auth:UserRegistor, db = Depends(get_db)):
 
 
 @router.post("/login")
-def user_login(auth: UserLogin, db = Depends(get_db)):
+@limiter.limit("10/minute")
+def user_login(request: Request, auth: UserLogin, db = Depends(get_db)):
     existing_email = db.query(User).filter(User.email == auth.email).first()
     if not existing_email:
         raise HTTPException(401, "Invalid Credentials")

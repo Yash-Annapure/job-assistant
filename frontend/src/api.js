@@ -2,8 +2,8 @@ const API_URL = "http://localhost:8000"
 
 const getToken = () => localStorage.getItem("token")
 
-const handleResponse = async (response) => {
-    if (response.status === 401) {
+const handleResponse = async (response, skipAuthRedirect = false) => {
+    if (response.status === 401 && !skipAuthRedirect) {
         localStorage.removeItem("token")
         window.location.href = "/login"
         return null
@@ -17,7 +17,7 @@ export const loginUser = async (email, password) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
     })
-    return handleResponse(response)
+    return handleResponse(response, true) // true skip redirect on 401
 }
 
 export const registerUser = async (username, email, password) => {
@@ -26,14 +26,18 @@ export const registerUser = async (username, email, password) => {
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({username,email,password})
     })
-    return handleResponse(response)
+    return handleResponse(response, true) // true skip redirect on 401
 }
 
-export const searchJob = async (query,location) =>{
-    const response = await fetch(`${API_URL}/jobs/search?query=${query}&location=${location}`,{
-        method : "GET",
-        headers : {"Content-Type": "application/json"},
-        })
+export const searchJob = async (query, location) => {
+    const token = localStorage.getItem("token")
+    const response = await fetch(`${API_URL}/jobs/search?query=${query}&location=${location}&limit=100`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        },
+    })
     return handleResponse(response)
 }
 export const uploadCV = async (file) => {

@@ -13,26 +13,46 @@ function Jobs() {
     const [coverLetter, setCoverLetter] = useState(null)
     const [generatingLetter, setGeneratingLetter] = useState(null)
     const [trackMessage, setTrackMessage] = useState(null)
+    const [visibleCount, setVisibleCount] = useState(20)
 
     const handleSearch = async () => {
     const data = await searchJob(query, location)
-    setJobs(data)
+        // deduplicate by slug
+        const seen = new Set()
+        const unique = data.filter(job => {
+            if (seen.has(job.slug)) return false
+            seen.add(job.slug)
+            return true
+        })
+    setJobs(unique)
+    setVisibleCount(20)
     // cache the results
-    localStorage.setItem("cachedJobs", JSON.stringify(data))
+    localStorage.setItem("cachedJobs", JSON.stringify(unique))
     localStorage.setItem("lastQuery", query)
     localStorage.setItem("lastLocation", location)
     }
 
+    const scoreJob = (job) => {
+        const words = query.toLowerCase().split(" ").filter(Boolean)
+        if (!words.length) return 0
+        const title = job.title.toLowerCase()
+        const desc = (job.description || "").toLowerCase()
+        const tags = (job.tags || []).join(" ").toLowerCase()
+        // title match weighted 3x, tag match 2x, description match 1x
+        return words.reduce((score, w) => {
+            if (title.includes(w)) score += 3
+            if (tags.includes(w)) score += 2
+            if (desc.includes(w)) score += 1
+            return score
+        }, 0)
+    }
+
     const filteredJobs = jobs.filter(job => {
         const matchesLocation = location === "" ||
-            job.location.toLowerCase().includes(location.toLowerCase())
-        return matchesLocation
-    }).sort((a, b) => {
-        const queryWords = query.toLowerCase().split(" ")
-        const aScore = queryWords.filter(w => a.title.toLowerCase().includes(w)).length
-        const bScore = queryWords.filter(w => b.title.toLowerCase().includes(w)).length
-        return bScore - aScore
-    })
+            (job.location || "").toLowerCase().includes(location.toLowerCase())
+        const hasScore = scoreJob(job) > 0
+        return matchesLocation && hasScore
+    }).sort((a, b) => scoreJob(b) - scoreJob(a))
 
     const handleMatchCV = async (job) => {
         setMatchingJob(job.slug)
@@ -59,7 +79,7 @@ function Jobs() {
 
     const handleSaveApplication = async (job) => {
         const savedJob = await saveJob({
-            title: job.title, company: job.company_name,
+            title: job.title, company: job.company,
             description: job.description, url: job.url
         })
         if (savedJob && savedJob.id) {
@@ -177,7 +197,7 @@ function Jobs() {
                         No matching jobs found.
                     </p>
                 ) : (
-                    filteredJobs.map((job) => (
+                    filteredJobs.slice(0, visibleCount).map((job) => (
                         <div key={job.slug}>
                             {/* Job Card */}
                             <div style={{
@@ -353,6 +373,24 @@ function Jobs() {
                     ))
                 )}
             </div>
+
+            {/* Show more */}
+            {visibleCount < filteredJobs.length && (
+                <div style={{ textAlign: "center", marginTop: "20px" }}>
+                    <button
+                        onClick={() => setVisibleCount(v => v + 20)}
+                        style={{
+                            backgroundColor: "transparent",
+                            border: "1px solid rgba(255,255,255,0.12)",
+                            color: "rgba(255,255,255,0.75)",
+                            padding: "9px 24px",
+                            borderRadius: "8px",
+                            fontSize: "13px"
+                        }}>
+                        Show more ({filteredJobs.length - visibleCount} remaining)
+                    </button>
+                </div>
+            )}
         </div>
     )
 }

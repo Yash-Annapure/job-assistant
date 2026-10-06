@@ -41,7 +41,7 @@ async def update_application(id:int, application:ApplicationUpdate, db = Depends
         raise HTTPException(404, "Application not found")
     if application.status:
         db_application.status = application.status
-    if application.notes:
+    if application.notes is not None:
         db_application.notes = application.notes
     
     db.commit()
